@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actividad económica por región · Chile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#E7EBEE; --papel2:#F4F7F8; --tinta:#101A22; --tenue:#65767F;
+  --linea:#C7D1D7; --exp:#0B6E6B; --con:#A32A4E; --foco:#D9862A;
+  --focoSuave:rgba(217,134,42,.11);
+  --sol:#BE7418; --solOsc:#8A4A11;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Consolas,monospace;
+  --disp:"Bricolage Grotesque",var(--sans);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--papel); color:var(--tinta); font-family:var(--sans);
+  font-size:15px; line-height:1.5;
+  padding:clamp(16px,2.6vw,34px);
+  background-image:linear-gradient(var(--linea) 1px,transparent 1px),linear-gradient(90deg,var(--linea) 1px,transparent 1px);
+  background-size:52px 52px; background-position:-1px -1px;
+}
+.marco{max-width:1320px;margin:0 auto}
+
+/* ---------- cabecera ---------- */
+.cab{display:flex;flex-wrap:wrap;align-items:flex-end;gap:20px 34px;
+     border-bottom:2px solid var(--tinta);padding-bottom:14px;margin-bottom:22px}
+.rotulo{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+        color:var(--tenue);margin:0 0 4px}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(28px,4.4vw,48px);line-height:.98;
+   letter-spacing:-.022em;margin:0;max-width:15ch}
+h1 em{font-style:normal;color:var(--tenue)}
+.cab p{margin:0;max-width:44ch;color:var(--tenue);font-size:14px}
+.cab .meta{margin-left:auto;text-align:right;font-family:var(--mono);font-size:11.5px;color:var(--tenue);line-height:1.7}
+.cab .meta b{color:var(--tinta);font-weight:600}
+
+/* ---------- controles ---------- */
+.mandos{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.grupo{display:flex;border:1px solid var(--linea);background:var(--papel2);border-radius:2px;overflow:hidden}
+.grupo button{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  background:none;border:0;padding:8px 13px;color:var(--tenue);cursor:pointer}
+.grupo button+button{border-left:1px solid var(--linea)}
+.grupo button[aria-pressed="true"]{background:var(--tinta);color:var(--papel2)}
+.grupo button:focus-visible{outline:2px solid var(--foco);outline-offset:-2px}
+.escala{display:flex;align-items:center;gap:9px;margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--tenue)}
+.escala i{display:block;width:132px;height:9px;
+  background:linear-gradient(90deg,var(--con),#DFC7CE,#E7EBEE,#C4D8D6,var(--exp))}
+
+/* ---------- tablero ---------- */
+.tablero{display:grid;grid-template-columns:minmax(0,1fr) minmax(288px,370px);
+  gap:clamp(14px,2vw,26px);align-items:start}
+.lienzo{min-width:0;margin:0;background:var(--papel2);border:1px solid var(--linea);padding:12px 10px 8px}
+#vista{display:block;width:100%;height:auto;touch-action:manipulation}
+
+/* mapa y barras */
+.region{stroke:var(--papel2);stroke-width:.55;stroke-linejoin:round;cursor:pointer;transition:opacity .16s}
+.guia{fill:none;stroke:var(--linea);stroke-width:.8}
+.rejilla{stroke:var(--linea);stroke-width:.7;stroke-dasharray:2 5}
+.cero{stroke:var(--tinta);stroke-width:1}
+.eje{font-family:var(--mono);font-size:9.5px;fill:var(--tenue)}
+.rom{font-family:var(--mono);font-size:10px;fill:var(--tenue);letter-spacing:.04em}
+.nom{font-family:var(--sans);font-size:14px;font-weight:600;fill:var(--tinta)}
+.cifra{font-family:var(--mono);font-size:12px;font-weight:600}
+.barra{cursor:pointer}
+.fondoFila{fill:transparent}
+.golpe{fill:transparent;cursor:pointer}
+.golpe:focus{outline:none}
+.golpe:focus-visible{outline:2px solid var(--foco);outline-offset:-3px}
+
+svg.hay .region:not(.on){opacity:.42}
+svg.hay .nom:not(.on),svg.hay .rom:not(.on){opacity:.4}
+svg.hay .barra:not(.on),svg.hay .cifra:not(.on){opacity:.55}
+.barra{transition:opacity .16s}
+.region.on{stroke:var(--foco);stroke-width:2.4;paint-order:stroke}
+.guia.on{stroke:var(--foco);stroke-width:1.4}
+.fondoFila.on{fill:var(--focoSuave)}
+
+/* ---------- panel ---------- */
+.panel{min-width:0;position:sticky;top:clamp(14px,2vw,22px);
+       display:flex;flex-direction:column;gap:14px;
+       max-height:calc(100vh - 2*clamp(14px,2vw,22px));overflow-y:auto;scrollbar-width:thin}
+.tarjeta{background:var(--papel2);border:1px solid var(--linea);padding:16px 18px}
+.tarjeta h2{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1.05;
+  letter-spacing:-.02em;margin:2px 0 2px}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--tenue);margin:0}
+.granCifra{display:flex;align-items:baseline;gap:10px;margin:12px 0 2px}
+.granCifra b{font-family:var(--mono);font-size:44px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.pastilla{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid currentColor;padding:3px 7px;border-radius:2px}
+.pieCifra{font-size:13px;color:var(--tenue);margin:0 0 4px}
+.spark{width:100%;height:78px;display:block;margin-top:6px}
+.sector{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13.5px;margin-top:9px}
+.sector span:last-child{font-family:var(--mono);font-size:12px;color:var(--tenue)}
+.sector .pista{grid-column:1/-1;height:5px;background:var(--linea);margin-bottom:5px}
+.sector .pista i{display:block;height:100%;background:var(--tinta)}
+.nota{font-size:13.5px;color:var(--tenue);margin:12px 0 0;padding-top:12px;border-top:1px solid var(--linea)}
+.vacio{color:var(--tenue);font-size:14px}
+.repartos{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--linea);
+  border:1px solid var(--linea);margin-top:12px}
+.repartos div{background:var(--papel2);padding:9px 10px}
+.repartos b{display:block;font-family:var(--mono);font-size:22px;font-weight:600;line-height:1.1}
+.repartos span{font-size:11px;color:var(--tenue)}
+
+/* ---------- pie ---------- */
+footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--linea);
+  display:flex;flex-wrap:wrap;gap:8px 28px;font-size:12.5px;color:var(--tenue)}
+footer p{margin:0;max-width:62ch}
+footer b{color:var(--tinta);font-weight:600}
+
+
+/* ---------- pestanas de vista ---------- */
+.pestanas{display:flex;border:1.5px solid var(--tinta);background:var(--papel2);
+  border-radius:2px;overflow:hidden}
+.pestanas button{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;background:none;border:0;padding:9px 21px 11px;color:var(--tenue);
+  cursor:pointer;position:relative;transition:background .14s,color .14s}
+.pestanas button+button{border-left:1px solid var(--linea)}
+.pestanas button:hover{color:var(--tinta)}
+.pestanas button[aria-selected="true"]{background:var(--tinta);color:var(--papel2)}
+.pestanas button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;
+  height:3px;background:var(--foco)}
+.pestanas button:focus-visible{outline:2px solid var(--foco);outline-offset:-3px}
+.divisorMandos{width:1px;align-self:stretch;min-height:28px;background:var(--linea);margin:0 4px}
+
+/* ---------- panel: vista solar ---------- */
+.perfil{font-size:13px;color:var(--tenue);margin:11px 0 0;line-height:1.45}
+.perfil b{color:var(--tinta);font-weight:600}
+.micro{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--linea);
+  border:1px solid var(--linea);margin-top:13px}
+.micro div{background:var(--papel2);padding:8px 9px}
+.micro b{display:block;font-family:var(--mono);font-size:18px;font-weight:600;line-height:1.15}
+.micro b .u{font-size:10px;letter-spacing:.06em;color:var(--tenue);margin-left:4px}
+.micro b.sd{font-family:var(--sans);font-size:14px;font-weight:400;color:var(--tenue);
+  line-height:1.45;padding-top:2px}
+.micro span{display:block;font-size:10.5px;line-height:1.3;color:var(--tenue);margin-top:3px}
+.obras{margin-top:4px}
+.obra{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:8px 0;
+  border-bottom:1px dotted var(--linea)}
+.obra:last-child{border-bottom:0}
+.obra .on1{font-size:13.5px;font-weight:600;line-height:1.35}
+.obra .on2{font-family:var(--mono);font-size:12px;text-align:right;white-space:nowrap;
+  color:var(--solOsc);font-weight:600}
+.obra .on3{grid-column:1/-1;font-size:11.5px;color:var(--tenue);line-height:1.35}
+.chip{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.07em;
+  text-transform:uppercase;border:1px solid currentColor;border-radius:2px;padding:1px 5px;
+  margin-left:6px;vertical-align:2px;font-weight:400;white-space:nowrap}
+.chip.bess{color:var(--exp)}
+.chip.constr{color:var(--sol)}
+.chip.rca{color:var(--tenue)}
+.tuberia{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13.5px;margin-top:9px}
+.tuberia span:last-child{font-family:var(--mono);font-size:12px;color:var(--tenue)}
+.tuberia .pista{grid-column:1/-1;height:5px;background:var(--linea);margin-bottom:5px}
+.tuberia .pista i{display:block;height:100%}
+body.vSolar{--foco:#0B6E6B;--focoSuave:rgba(11,110,107,.10)}
+body.vSolar .repartos b{font-size:20px}
+body.vSolar .repartos span{line-height:1.35;display:block}
+
+@media (max-width:900px){
+  .tablero{grid-template-columns:1fr}
+  .lienzo{order:2;overflow-x:auto;overscroll-behavior-x:contain}
+  #vista{min-width:600px}
+  .panel{position:static;order:1;max-height:none;overflow:visible}
+  .cab .meta{margin-left:0;text-align:left}
+  .aviso{display:block}
+}
+.aviso{display:none;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--tenue);margin:0 0 8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="marco">
+
+<header class="cab">
+  <div>
+    <p class="rotulo" id="mRotulo">Monitor regional · Chile</p>
+    <h1 id="mH1">Actividad económica<br><em>por región</em></h1>
+  </div>
+  <p id="mBajada">El país es el eje vertical del gráfico. Cada región se conecta con su barra de variación en doce meses: pasa el cursor por el mapa o por una fila para fijar el detalle.</p>
+  <div class="meta" id="mMeta"></div>
+</header>
+
+<div class="mandos">
+  <div class="pestanas" role="tablist" aria-label="Conjunto de indicadores">
+    <button id="tGlobal" role="tab" aria-selected="true">Global</button>
+    <button id="tSolar"  role="tab" aria-selected="false">Solar</button>
+  </div>
+  <span class="divisorMandos" aria-hidden="true"></span>
+  <div class="grupo" id="mOrden" role="group" aria-label="Orden de las filas">
+    <button id="bGeo" aria-pressed="true">Norte → Sur</button>
+    <button id="bVar" aria-pressed="false">Por variación</button>
+  </div>
+  <div class="escala" id="mEscala"></div>
+</div>
+
+<main class="tablero">
+  <figure class="lienzo">
+    <p class="aviso">Desliza el gráfico · toca una fila para ver el detalle</p>
+    <svg id="vista" role="img" aria-label="Mapa de Chile con la variación de actividad económica por región"></svg>
+  </figure>
+
+  <aside class="panel">
+    <section class="tarjeta" id="detalle" aria-live="polite"></section>
+    <section class="tarjeta" id="resumen"></section>
+  </aside>
+</main>
+
+<footer>
+  <p id="mPie"></p>
+  <p><b>Geometría.</b> Límites administrativos de las 16 regiones simplificados a ~2 km, proyección Mercator. Se excluyen el territorio antártico e islas oceánicas para no distorsionar la escala.</p>
+</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   DATOS  ·  reemplaza los valores de "var" y "serie" por tu fuente
+   ============================================================ */
+const DATA = {"W":174.4,"H":1000.0,"periodos":["T3 24","T4 24","T1 25","T2 25","T3 25","T4 25","T1 26","T2 26"],"regiones":[{"cod":15,"nombre":"Arica y Parinacota","romano":"XV","capital":"Arica","d":"M134.9 30.5L133.8 30.8L133.4 31.3L133.7 31.8L130.7 34.1L129.3 33.9L127.8 34.7L125.3 32.4L116.1 32.6L108.0 36.8L108.3 34.9L106.6 27.6L107.1 21.1L107.7 20.1L106.2 18.1L107.2 17.3L110.8 17.4L112.8 16.3L114.1 16.3L116.6 14.2L118.7 10.4L117.4 5.2L117.9 3.1L120.5 3.4L124.5 0.0L124.5 2.3L127.1 5.0L128.3 10.0L131.5 10.7L132.8 11.9L131.1 14.0L132.6 15.5L132.4 16.7L133.2 17.4L133.0 19.7L133.8 20.7L133.8 23.4L133.2 23.9L134.2 25.0L135.4 28.5L134.9 30.5Z","y0":0.0,"y1":36.8,"cx":123.9,"cy":20.2,"var":1.8,"serie":[0.4,-0.6,0.9,1.5,0.8,1.2,2.4,1.8],"sectores":[{"n":"Comercio y servicios fronterizos","p":34},{"n":"Agricultura y hortalizas","p":21},{"n":"Turismo y gastronomía","p":18},{"n":"Puerto y logística","p":14}],"nota":"Índice muy sensible al flujo fronterizo con Perú y Bolivia y al tipo de cambio: el comercio pesa más que la producción de bienes."},{"cod":1,"nombre":"Tarapacá","romano":"I","capital":"Iquique","d":"M111.0 57.4L111.3 53.0L110.7 47.6L110.4 46.0L109.3 44.9L109.7 43.0L108.0 36.8L114.7 33.0L125.3 32.4L127.8 34.7L129.3 33.9L130.7 34.1L133.7 31.8L133.4 31.3L133.8 30.8L134.9 30.5L136.5 33.2L137.8 33.7L141.6 37.8L143.1 38.2L145.9 40.8L141.5 46.9L140.3 47.2L140.2 47.9L142.0 49.6L143.4 49.9L143.0 53.7L142.7 54.3L138.7 54.9L138.5 56.0L139.9 56.1L139.8 58.7L140.8 60.1L140.5 60.9L139.1 61.2L139.2 63.1L142.5 65.6L143.3 65.5L145.0 67.2L142.9 68.9L142.9 71.9L144.4 73.6L143.3 76.2L136.8 80.9L127.6 83.4L122.8 88.4L120.5 84.8L118.4 83.9L112.6 84.1L112.0 82.9L111.8 82.1L112.4 81.2L112.1 79.8L111.1 77.5L111.3 76.7L110.2 75.3L111.2 73.4L110.9 72.1L109.6 70.7L110.0 70.4L109.8 64.6L110.6 63.2L110.1 61.1L111.2 59.4L110.6 57.9L111.0 57.4Z","y0":30.5,"y1":88.4,"cx":126.9,"cy":58.0,"var":3.4,"serie":[2.1,1.4,2.8,3.9,3.1,2.6,3.0,3.4],"sectores":[{"n":"Minería del cobre","p":41},{"n":"Zona franca y comercio","p":24},{"n":"Pesca y acuicultura","p":11},{"n":"Transporte y energía","p":10}],"nota":"La actividad sigue el ciclo de la gran minería; una parada de planta o una caída de ley del mineral mueve el índice regional completo."},{"cod":2,"nombre":"Antofagasta","romano":"II","capital":"Antofagasta","d":"M143.1 169.0L141.0 169.2L140.3 170.6L138.3 171.4L137.4 170.6L134.2 170.7L133.2 172.2L134.0 173.7L132.5 175.4L132.9 176.6L132.0 178.4L132.7 178.7L131.9 180.3L128.5 181.7L126.2 182.0L125.3 181.5L123.8 182.8L123.8 183.6L118.7 182.9L116.7 183.4L115.6 182.4L113.3 182.9L112.2 183.9L108.5 183.2L107.8 182.4L103.2 184.9L101.6 184.8L101.3 186.1L100.5 186.1L101.1 184.8L98.9 180.7L99.0 179.8L100.0 179.0L100.0 177.2L100.9 176.7L100.7 174.3L101.1 173.7L103.1 173.1L103.4 171.5L104.7 170.8L105.0 168.1L104.4 165.4L103.6 164.8L104.3 162.0L103.1 160.5L103.3 159.4L102.2 156.1L102.6 153.0L102.1 152.4L103.6 144.2L103.3 140.7L103.8 138.0L103.2 137.1L105.6 132.8L105.9 131.0L105.4 129.5L104.4 128.6L103.4 128.5L102.9 130.0L101.4 129.4L102.0 125.4L101.6 123.9L102.5 122.4L102.0 120.6L103.3 118.8L104.0 120.4L106.0 119.8L107.9 116.3L107.5 113.1L108.0 110.5L108.5 110.3L108.1 108.9L109.0 107.3L108.4 106.5L110.1 94.4L110.9 92.8L110.7 89.0L111.9 87.5L112.6 84.1L118.4 83.9L120.5 84.8L122.8 88.4L127.6 83.4L136.8 80.9L143.3 76.2L144.4 73.6L145.8 73.4L150.5 81.3L150.4 87.8L152.9 91.5L152.6 96.0L155.3 98.8L154.9 99.7L155.6 101.8L155.4 104.9L156.0 105.2L156.2 107.3L157.3 108.2L157.3 109.4L156.4 110.1L156.4 114.6L158.1 115.7L162.8 116.0L170.6 114.2L174.4 118.3L167.7 141.0L149.1 149.0L147.8 151.1L146.3 151.0L144.8 154.0L144.2 153.5L144.0 153.9L144.1 155.2L142.6 157.8L143.7 159.6L145.2 160.3L145.8 162.8L146.7 163.5L147.2 164.8L145.8 165.6L144.7 165.3L144.0 166.0L143.1 169.0Z","y0":73.4,"y1":186.1,"cx":124.7,"cy":142.2,"var":4.6,"serie":[3.2,2.4,3.8,5.1,4.4,3.9,4.2,4.6],"sectores":[{"n":"Minería de cobre y litio","p":52},{"n":"Servicios a la minería","p":17},{"n":"Generación solar","p":9},{"n":"Puertos y transporte","p":8}],"nota":"Región con la mayor concentración sectorial del país: el índice es prácticamente un proxy de la producción de cobre y litio."},{"cod":3,"nombre":"Atacama","romano":"III","capital":"Copiapó","d":"M143.1 169.0L143.5 170.7L142.2 172.4L143.6 175.2L143.1 176.4L144.4 178.1L146.4 188.7L142.8 191.1L142.2 195.8L148.8 205.4L147.7 206.7L148.2 208.1L145.5 208.7L144.1 210.3L142.8 209.9L142.5 211.2L141.3 210.9L140.6 209.5L138.4 209.5L136.8 211.6L136.6 213.2L137.5 213.9L136.6 214.4L135.2 217.3L134.2 217.4L135.1 219.0L134.2 219.1L134.4 219.9L132.9 221.2L133.0 223.1L132.2 223.5L131.5 227.6L130.3 229.3L129.2 229.2L127.7 232.9L126.3 234.1L126.0 235.1L124.9 234.2L123.4 237.5L122.3 238.0L121.9 238.9L120.8 239.0L121.2 239.8L120.3 240.8L120.6 243.3L119.9 243.6L119.2 246.0L119.9 247.7L118.5 250.6L118.7 252.5L118.1 253.5L118.0 256.0L116.1 256.2L114.7 257.3L115.0 258.6L113.4 260.3L113.3 261.8L114.4 262.4L114.1 263.3L114.7 264.5L112.0 265.3L110.4 265.0L107.6 261.5L106.1 261.5L105.8 262.1L104.5 261.7L104.3 258.3L102.6 253.9L99.2 254.2L99.0 255.3L97.6 256.1L95.5 255.9L94.1 257.0L93.4 260.3L92.4 261.1L91.7 261.1L91.9 260.0L89.9 259.5L89.5 257.2L88.0 257.2L86.5 256.2L85.2 257.2L83.6 257.1L83.5 256.2L84.3 255.3L83.7 254.7L83.2 250.8L83.9 249.4L86.0 248.2L87.6 245.5L87.9 244.3L87.3 243.0L88.4 242.4L88.4 240.8L89.2 240.6L90.4 238.2L89.6 236.8L90.5 235.2L89.9 232.3L90.7 231.7L90.9 228.6L93.0 222.2L93.5 222.9L95.6 221.4L95.9 218.7L94.3 215.5L95.0 214.3L94.1 211.1L94.9 209.7L95.7 210.5L96.5 210.0L96.7 208.4L97.5 208.4L97.2 208.0L97.8 207.3L97.0 204.5L97.9 202.4L98.9 201.7L98.5 200.7L100.0 197.6L99.7 193.5L101.1 192.5L100.2 191.2L100.7 190.4L100.2 189.2L100.5 186.1L101.3 186.1L101.6 184.8L103.2 184.9L107.8 182.4L108.5 183.2L112.2 183.9L113.3 182.9L115.6 182.4L116.7 183.4L118.7 182.9L123.4 183.6L125.3 181.5L126.2 182.0L129.0 181.6L131.9 180.3L132.7 178.7L132.0 178.4L132.9 176.6L132.5 175.4L134.0 173.7L133.2 172.2L134.2 170.7L137.4 170.6L138.3 171.4L140.3 170.6L141.0 169.2L143.1 169.0Z","y0":169.0,"y1":265.3,"cx":114.0,"cy":220.6,"var":2.9,"serie":[1.1,0.6,1.9,2.4,2.8,2.2,2.5,2.9],"sectores":[{"n":"Minería de cobre, oro y hierro","p":44},{"n":"Agricultura de exportación","p":16},{"n":"Generación solar","p":12},{"n":"Pesca","p":7}],"nota":"Combina el ciclo minero con una temporada agrícola muy marcada; el dato del primer trimestre suele estar inflado por la uva de mesa."},{"cod":4,"nombre":"Coquimbo","romano":"IV","capital":"La Serena","d":"M80.3 301.4L80.6 299.7L79.3 294.5L79.2 291.2L79.9 284.3L80.9 281.7L81.4 283.0L82.3 283.1L83.5 282.5L84.4 280.1L84.9 280.6L85.8 280.2L86.1 278.0L85.2 276.0L86.5 275.6L86.8 274.5L87.4 275.1L88.1 273.6L87.8 271.9L86.7 270.7L87.8 267.2L87.0 265.7L87.5 263.3L86.8 262.2L87.0 260.9L84.4 258.8L83.6 257.1L85.2 257.2L86.5 256.2L88.0 257.2L89.5 257.2L89.9 259.5L91.9 260.0L91.7 261.1L92.4 261.1L93.4 260.3L94.1 257.0L95.5 255.9L97.6 256.1L99.0 255.3L99.2 254.2L102.6 253.9L104.3 258.3L104.5 261.7L105.8 262.1L106.1 261.5L107.6 261.5L110.4 265.0L112.0 265.3L114.7 264.5L114.9 267.8L116.1 269.3L115.5 271.6L116.2 272.8L115.5 276.7L114.5 278.1L115.2 278.8L117.4 279.0L117.6 279.6L117.1 281.2L116.1 281.1L115.7 284.0L114.7 285.1L112.5 285.3L110.7 284.1L111.4 286.1L109.8 287.5L109.9 288.9L109.0 290.4L108.8 293.1L107.3 297.7L108.3 300.5L107.3 300.5L105.7 303.4L104.7 301.5L104.0 302.2L102.7 306.9L103.0 309.1L102.3 310.6L102.4 313.7L103.4 314.8L103.4 315.7L104.2 315.8L104.6 319.5L108.1 320.3L109.5 322.1L108.0 324.3L106.2 323.7L106.0 324.2L107.0 324.8L106.9 325.7L107.6 326.3L107.3 329.5L104.9 329.5L104.6 327.2L103.0 326.6L102.8 327.3L100.6 326.3L100.5 324.4L99.8 324.6L98.9 323.6L95.0 325.0L94.6 324.3L92.8 323.9L93.0 324.7L90.3 327.1L89.3 326.1L86.7 327.9L83.7 326.9L82.7 327.3L83.2 326.2L83.0 324.0L83.5 321.9L83.0 321.9L83.6 320.7L83.2 319.6L82.4 319.6L83.4 317.6L82.6 316.9L81.9 313.4L82.1 311.3L80.2 303.5L80.3 301.4Z","y0":253.9,"y1":329.5,"cx":97.1,"cy":292.3,"var":0.7,"serie":[1.6,1.2,0.4,-0.3,0.2,0.9,0.5,0.7],"sectores":[{"n":"Agricultura (pisco, paltos, cítricos)","p":28},{"n":"Minería","p":25},{"n":"Turismo","p":15},{"n":"Pesca y acuicultura","p":9}],"nota":"Fuertemente expuesta a la disponibilidad hídrica: los años secos se leen directamente en el componente silvoagropecuario."},{"cod":5,"nombre":"Valparaíso","romano":"V","capital":"Valparaíso","d":"M82.7 327.3L83.7 326.9L86.7 327.9L89.3 326.1L90.3 327.1L93.0 324.7L92.8 323.9L94.6 324.3L95.0 325.0L97.6 323.9L99.6 323.9L100.8 324.9L100.6 326.3L102.8 327.3L103.0 326.6L104.6 327.2L104.9 329.5L106.7 329.2L109.2 330.8L109.0 333.3L110.8 334.2L111.3 335.9L110.4 338.0L110.8 340.4L111.6 342.2L113.9 344.9L113.4 347.2L109.0 350.4L108.8 351.5L107.7 349.7L106.2 349.5L105.7 347.8L105.0 347.5L103.5 349.1L101.6 345.6L99.5 346.0L98.9 345.2L96.9 345.2L93.3 346.5L93.0 349.0L93.5 351.8L92.1 352.5L89.3 352.6L89.1 356.0L86.7 357.0L86.8 361.6L84.8 363.5L86.3 365.3L85.0 366.0L82.5 365.6L82.4 368.1L79.1 370.1L78.3 369.3L76.7 369.3L76.9 367.8L77.6 365.7L80.3 364.1L81.4 359.7L79.6 357.4L80.5 354.3L79.6 353.0L79.9 352.3L79.3 351.8L79.8 351.2L78.8 349.2L79.9 349.5L80.4 347.8L81.3 348.0L82.4 347.3L82.5 345.3L83.4 344.9L82.7 341.5L83.8 341.4L83.4 340.0L84.2 340.0L84.9 338.4L84.0 335.5L84.9 334.7L85.4 332.5L84.0 331.1L84.0 329.3L83.1 328.8L82.7 327.3Z","y0":323.9,"y1":370.1,"cx":91.8,"cy":343.9,"var":-0.6,"serie":[0.9,0.5,-0.2,-1.1,-0.8,-0.4,-0.9,-0.6],"sectores":[{"n":"Puertos y logística","p":22},{"n":"Industria y refinación","p":20},{"n":"Agricultura de exportación","p":17},{"n":"Turismo y servicios","p":16}],"nota":"El componente portuario y la industria pesada dominan; los cierres de puerto por marejadas introducen ruido estacional relevante."},{"cod":13,"nombre":"Metropolitana de Santiago","romano":"RM","capital":"Santiago","d":"M100.5 345.9L101.8 345.8L103.5 349.1L105.0 347.5L105.7 347.8L106.2 349.5L107.7 349.7L108.8 351.5L109.0 350.4L111.9 348.2L112.7 350.2L112.5 351.9L113.2 352.6L113.0 353.5L113.7 354.8L115.4 353.4L117.8 353.9L118.3 356.1L117.7 356.5L117.1 359.4L116.4 360.0L116.1 363.5L116.5 364.2L115.7 365.8L115.8 367.5L116.7 368.5L115.7 370.3L116.7 370.3L117.3 371.4L116.7 372.5L117.1 373.3L116.3 374.4L117.8 375.9L117.7 377.2L115.6 378.2L114.4 377.2L112.7 378.0L112.7 376.7L110.8 375.5L110.5 374.6L110.9 374.1L110.1 372.0L108.8 372.0L108.5 372.9L106.9 372.5L107.3 371.2L106.1 369.2L106.2 368.3L104.9 367.6L100.4 369.7L99.5 368.9L98.5 369.8L97.7 369.5L97.2 370.0L97.8 371.2L97.3 372.0L95.9 372.1L95.8 372.9L94.9 373.3L95.3 374.7L92.2 375.6L89.9 375.0L87.7 372.3L85.7 373.0L85.3 372.1L83.5 371.1L82.2 370.9L81.8 372.0L79.3 370.4L79.7 369.4L82.4 368.1L82.5 365.6L85.0 366.0L86.3 365.3L84.8 363.5L86.8 361.6L86.7 357.0L89.1 356.0L89.3 352.6L92.1 352.5L93.5 351.8L93.2 346.5L96.9 345.2L98.9 345.2L99.5 346.0L100.5 345.9Z","y0":345.2,"y1":378.2,"cx":103.0,"cy":363.9,"var":1.2,"serie":[1.8,1.5,0.9,0.6,1.0,1.4,1.1,1.2],"sectores":[{"n":"Servicios financieros y empresariales","p":31},{"n":"Comercio","p":23},{"n":"Industria manufacturera","p":18},{"n":"Construcción","p":12}],"nota":"Concentra cerca de la mitad del PIB nacional, por lo que su trayectoria se parece mucho al Imacec no minero."},{"cod":6,"nombre":"O'Higgins","romano":"VI","capital":"Rancagua","d":"M73.4 375.3L73.3 374.4L76.8 368.9L76.7 369.3L78.3 369.3L81.8 372.0L82.2 370.8L84.5 371.5L85.7 373.0L88.2 372.4L89.9 375.0L92.2 375.6L95.3 374.7L94.9 373.3L95.8 372.9L95.9 372.1L97.3 372.0L97.8 371.2L97.2 370.0L97.7 369.5L98.5 369.8L99.5 368.9L100.4 369.7L104.9 367.6L106.2 368.3L106.1 369.2L107.3 371.2L106.9 372.5L108.5 372.9L108.8 372.0L110.3 372.3L110.8 375.5L112.7 376.7L113.6 380.8L112.1 382.7L111.1 383.1L109.4 386.1L109.5 387.5L107.6 389.4L107.5 390.0L108.8 390.7L107.1 394.1L107.0 395.4L106.4 395.8L104.1 395.5L102.8 394.0L101.2 395.2L98.3 392.2L94.5 392.5L92.6 390.5L91.6 391.3L90.9 390.4L89.2 391.5L88.0 390.5L86.1 391.5L85.8 392.8L86.2 393.4L80.3 392.1L79.6 394.0L77.6 391.4L75.2 391.1L73.4 388.4L72.3 387.9L73.0 383.1L72.5 381.7L73.8 380.0L74.0 378.5L73.4 375.3Z","y0":367.6,"y1":395.8,"cx":93.7,"cy":380.7,"var":2.1,"serie":[0.8,1.1,1.7,2.5,1.9,1.6,2.3,2.1],"sectores":[{"n":"Minería (El Teniente)","p":33},{"n":"Agroindustria frutícola","p":25},{"n":"Vitivinicultura","p":14},{"n":"Alimentos y manufactura","p":11}],"nota":"Dos motores desacoplados: la gran minería subterránea y la fruta de exportación, con estacionalidades opuestas."},{"cod":7,"nombre":"Maule","romano":"VII","capital":"Talca","d":"M72.8 387.9L75.0 390.9L77.6 391.4L79.6 394.0L80.3 392.1L86.2 393.4L85.8 392.8L86.1 391.5L88.0 390.5L89.2 391.5L90.9 390.4L91.6 391.3L92.6 390.5L94.5 392.5L98.3 392.2L101.2 395.2L102.8 394.0L104.1 395.5L106.4 395.8L106.1 399.9L103.0 400.5L102.0 402.4L103.6 403.5L105.1 403.5L105.3 404.3L104.7 405.2L104.8 407.2L106.1 408.3L105.5 409.2L106.0 410.6L105.4 411.2L106.5 414.3L106.2 415.1L107.4 415.9L105.3 417.3L105.2 418.3L106.2 418.5L105.3 419.7L106.1 420.1L106.3 421.5L105.5 421.8L105.3 424.3L103.8 424.8L102.3 423.7L102.3 424.7L99.5 427.2L99.9 428.1L99.4 428.9L100.1 430.1L99.3 431.1L95.8 430.4L95.7 432.2L94.1 432.9L92.4 431.9L92.4 430.1L91.3 429.4L88.9 432.0L88.3 431.4L87.7 432.0L87.0 433.9L85.3 433.0L84.7 431.1L79.7 429.3L77.3 426.8L74.0 426.9L73.2 425.2L71.4 423.5L70.4 426.6L68.7 425.6L67.9 426.9L67.1 426.2L65.9 426.8L65.2 425.6L66.2 425.7L66.7 424.9L63.3 424.0L63.5 422.2L61.9 422.2L60.4 420.8L60.2 421.4L57.8 420.7L57.9 419.5L62.0 415.4L61.7 412.9L60.6 410.5L61.0 409.5L63.6 407.0L63.4 405.3L65.2 403.4L65.7 401.1L69.5 398.1L69.8 393.0L72.8 387.9Z","y0":387.9,"y1":433.9,"cx":86.8,"cy":413.5,"var":-1.4,"serie":[0.6,0.2,-0.5,-1.8,-2.1,-1.6,-1.1,-1.4],"sectores":[{"n":"Agricultura y agroindustria","p":34},{"n":"Vitivinicultura","p":18},{"n":"Silvícola y celulosa","p":16},{"n":"Generación hidroeléctrica","p":10}],"nota":"El peso silvoagropecuario hace que el índice reaccione a heladas, sequía y precios internacionales del vino y la fruta."},{"cod":16,"nombre":"Ñuble","romano":"XVI","capital":"Chillán","d":"M66.4 444.1L65.7 443.3L64.2 443.6L63.7 442.9L63.2 443.8L60.4 443.4L60.5 442.5L62.1 442.7L61.3 438.4L59.0 436.8L58.7 436.0L57.4 435.5L56.8 433.5L57.3 432.8L57.1 431.9L55.7 431.5L57.2 427.2L57.1 422.7L58.0 420.5L60.2 421.4L60.4 420.8L61.9 422.2L63.5 422.2L63.3 424.0L65.6 424.8L66.2 424.3L66.6 425.5L65.2 425.6L65.9 426.8L67.1 426.2L67.9 426.9L68.7 425.6L70.4 426.6L71.4 423.5L73.2 425.2L74.0 426.9L77.3 426.8L79.7 429.3L84.7 431.1L85.3 433.0L87.0 433.9L88.3 431.4L88.9 432.0L91.3 429.4L92.4 430.1L92.2 431.6L92.9 432.2L92.7 436.5L93.5 437.5L92.5 438.1L91.3 437.4L90.9 440.8L90.0 441.5L91.1 441.9L90.7 443.7L91.8 443.9L91.5 444.7L89.5 444.8L91.7 448.2L88.2 448.3L86.2 447.2L85.4 447.6L83.3 445.6L82.5 446.1L82.4 448.8L79.8 449.1L77.6 448.2L75.7 450.1L73.6 450.3L72.8 449.7L72.1 450.3L67.9 450.4L68.2 447.8L69.8 446.6L66.4 444.1Z","y0":420.5,"y1":450.4,"cx":74.2,"cy":436.3,"var":-2.2,"serie":[0.4,-0.3,-1.2,-2.6,-3.1,-2.4,-1.9,-2.2],"sectores":[{"n":"Agricultura","p":31},{"n":"Silvicultura","p":22},{"n":"Agroindustria","p":19},{"n":"Comercio y turismo rural","p":13}],"nota":"Región de creación reciente (2018), con series cortas: conviene contrastar sus variaciones con las de Biobío antes de concluir."},{"cod":8,"nombre":"Biobío","romano":"VIII","capital":"Concepción","d":"M47.7 478.5L46.4 480.2L47.2 480.8L47.8 483.4L46.8 483.2L46.8 482.1L45.9 481.2L43.2 483.3L42.7 482.7L42.6 480.8L43.3 479.4L43.0 477.4L44.0 476.3L44.1 473.0L42.9 468.9L40.2 464.0L39.6 461.4L41.4 458.2L41.0 455.8L39.6 454.4L40.1 451.3L41.5 449.2L41.9 450.3L45.5 451.6L47.4 451.3L49.5 449.7L50.4 447.0L49.5 445.3L50.2 441.2L48.9 440.0L49.5 439.1L49.8 439.6L50.7 438.9L50.1 438.2L50.9 435.8L51.4 436.0L51.1 438.4L53.5 438.7L54.1 435.9L53.4 434.9L53.8 433.6L54.7 434.0L55.3 431.6L57.1 431.9L57.3 432.8L56.8 433.5L57.4 435.5L58.7 436.0L59.0 436.8L61.3 438.4L62.1 442.7L60.5 442.5L60.4 443.4L63.2 443.8L63.7 442.9L64.2 443.6L65.7 443.3L66.6 444.7L69.5 446.1L69.8 446.6L68.2 447.8L67.9 450.4L72.1 450.3L72.8 449.7L73.6 450.3L75.7 450.1L77.6 448.2L79.8 449.1L82.4 448.8L82.5 446.1L83.3 445.6L85.4 447.6L86.2 447.2L88.2 448.3L91.7 448.2L90.9 449.2L91.3 450.6L89.8 452.4L89.2 452.4L89.6 455.2L90.5 455.6L91.2 457.9L90.6 459.0L91.1 460.2L89.7 461.4L89.4 462.9L91.1 466.4L90.1 467.2L91.5 468.1L91.3 469.6L92.0 469.9L92.7 472.3L93.8 473.0L93.8 473.7L86.0 473.1L84.8 475.4L82.9 476.1L82.4 477.2L81.3 477.0L80.6 478.9L79.3 477.5L79.7 477.3L79.2 476.5L79.6 475.2L79.1 474.6L79.5 472.6L78.4 471.8L75.6 472.7L74.2 470.7L72.4 471.2L71.4 470.7L68.6 467.8L67.1 467.8L65.4 466.8L63.8 464.4L63.5 461.8L60.7 462.4L59.6 461.1L56.3 460.4L51.8 461.4L51.7 462.6L51.0 463.1L51.2 463.9L52.8 463.7L52.8 466.0L50.9 467.6L50.9 469.8L49.5 470.6L49.1 472.2L51.7 473.4L51.8 475.2L50.6 475.6L50.5 476.4L47.7 478.5ZM34.2 479.0L35.9 480.3L35.5 481.6L34.6 481.3L34.2 479.0Z","y0":431.6,"y1":483.4,"cx":63.2,"cy":459.3,"var":-3.1,"serie":[-0.5,-1.2,-2.4,-3.8,-4.2,-3.4,-2.8,-3.1],"sectores":[{"n":"Forestal y celulosa","p":27},{"n":"Industria y siderurgia","p":23},{"n":"Pesca industrial","p":14},{"n":"Energía","p":11}],"nota":"La base manufacturera y forestal la vuelve la región más procíclica del sur: amplifica tanto las expansiones como las caídas."},{"cod":9,"nombre":"La Araucanía","romano":"IX","capital":"Temuco","d":"M57.8 460.5L60.3 461.4L60.7 462.4L63.5 461.8L63.8 464.4L65.4 466.8L67.1 467.8L68.6 467.8L71.4 470.7L72.4 471.2L74.2 470.7L75.6 472.7L78.4 471.8L79.5 472.6L79.1 474.6L79.6 475.2L79.2 476.5L79.7 477.3L79.3 477.5L80.6 478.9L81.3 477.0L82.4 477.2L82.9 476.1L84.8 475.4L86.0 473.1L90.3 473.7L91.9 473.2L93.7 475.2L93.0 477.3L93.7 478.3L93.9 481.9L96.8 484.7L97.1 486.2L95.6 488.0L95.9 488.8L95.1 490.5L91.7 490.3L89.9 491.8L88.4 491.9L87.6 493.3L85.0 494.6L85.5 497.6L85.1 500.5L86.1 504.0L85.6 505.7L84.4 506.3L84.6 508.4L84.1 509.4L82.9 510.6L84.0 510.9L84.2 511.9L83.4 513.2L81.2 512.8L79.1 509.5L77.3 509.4L75.0 507.6L69.1 510.4L68.0 510.0L68.7 508.7L66.9 509.9L63.1 509.0L62.8 508.1L60.2 508.6L59.6 507.9L57.6 507.8L57.5 507.2L55.6 507.4L55.3 506.5L56.7 504.7L56.2 504.1L54.4 504.9L52.8 504.4L51.5 506.7L49.8 507.5L48.4 506.8L49.2 506.1L48.8 503.2L46.8 496.2L43.5 487.7L42.9 483.2L45.9 481.2L46.8 482.1L46.8 483.2L47.8 483.4L47.2 480.8L46.4 480.2L46.8 479.5L49.3 476.8L50.5 476.4L50.6 475.6L51.8 475.2L51.7 473.4L49.1 472.2L49.5 470.6L50.9 469.8L50.9 467.6L52.8 466.0L52.8 463.7L51.0 463.6L52.1 461.7L51.8 461.4L57.8 460.5Z","y0":460.5,"y1":513.2,"cx":68.8,"cy":487.1,"var":-0.9,"serie":[0.3,-0.1,-0.7,-1.4,-1.1,-0.6,-1.2,-0.9],"sectores":[{"n":"Agricultura (cereales y berries)","p":29},{"n":"Forestal","p":21},{"n":"Comercio y servicios","p":20},{"n":"Turismo","p":12}],"nota":"Alta dependencia del ciclo agrícola anual; el componente de servicios amortigua pero no revierte las malas temporadas."},{"cod":14,"nombre":"Los Ríos","romano":"XIV","capital":"Valdivia","d":"M71.1 509.9L74.7 507.6L77.8 509.6L79.1 509.5L79.9 511.3L79.2 513.6L80.1 514.4L79.5 514.7L80.0 517.6L79.7 518.5L81.7 520.4L81.1 522.0L80.2 522.6L80.0 525.5L76.9 525.1L77.5 525.7L77.0 527.2L77.5 527.6L76.9 528.5L78.6 530.8L79.2 530.1L79.8 530.5L80.4 532.4L78.6 534.3L77.0 533.9L76.3 537.4L74.0 539.5L69.5 540.5L67.5 539.9L66.7 540.6L64.6 540.0L61.2 540.8L60.3 539.3L57.4 538.2L55.5 536.1L55.1 534.4L51.7 531.8L45.1 531.7L44.1 529.9L41.4 530.7L38.9 529.2L38.7 528.0L40.1 526.3L39.9 524.1L39.1 522.9L39.6 521.8L41.4 521.6L43.4 520.0L43.9 518.8L44.6 519.1L45.4 521.3L45.8 520.0L46.8 521.6L47.5 521.4L48.2 519.4L50.4 520.6L50.1 519.6L49.2 519.9L48.0 519.0L48.3 516.1L49.6 515.3L49.6 514.6L48.2 515.5L47.5 519.0L45.2 519.3L45.4 516.6L45.0 515.3L48.1 510.7L48.2 508.8L48.9 508.0L48.4 506.8L49.8 507.5L51.5 506.7L52.8 504.4L54.4 504.9L56.2 504.1L56.7 504.7L55.3 506.5L55.6 507.4L57.5 507.2L57.6 507.8L59.6 507.9L60.2 508.6L62.8 508.1L63.1 509.0L66.9 509.9L68.7 508.7L68.0 510.0L69.1 510.4L71.1 509.9ZM47.1 519.0L48.1 520.2L47.5 521.3L45.7 519.5L47.1 519.0Z","y0":504.1,"y1":540.8,"cx":59.4,"cy":520.2,"var":0.4,"serie":[-0.6,-0.2,0.3,0.8,0.1,0.5,0.2,0.4],"sectores":[{"n":"Forestal y celulosa","p":26},{"n":"Lácteos y alimentos","p":22},{"n":"Turismo","p":15},{"n":"Astilleros y servicios","p":11}],"nota":"Índice relativamente estable: la planta de celulosa y la industria láctea operan con menos estacionalidad que el agro puro."},{"cod":10,"nombre":"Los Lagos","romano":"X","capital":"Puerto Montt","d":"M56.3 562.5L54.5 561.9L52.4 563.5L52.7 564.3L51.3 565.1L52.5 568.2L51.4 568.3L50.1 570.5L48.6 570.8L45.1 569.8L45.9 571.0L38.4 569.2L39.3 566.5L40.4 565.4L42.9 565.5L43.4 563.5L45.0 562.9L43.5 563.1L42.7 565.0L41.6 565.5L40.2 564.8L39.1 562.5L39.8 565.3L37.7 564.4L36.3 561.5L36.5 557.9L34.8 553.1L34.2 548.9L36.0 547.5L36.3 546.9L35.5 545.4L36.4 542.4L37.1 541.6L36.6 540.3L38.1 539.0L38.8 537.5L37.9 535.0L38.2 530.3L38.9 529.2L41.4 530.7L44.1 529.9L45.1 531.7L51.7 531.8L55.1 534.4L55.5 536.1L57.4 538.2L60.3 539.3L61.2 540.8L64.6 540.0L66.7 540.6L67.5 539.9L71.4 540.3L72.4 539.4L74.0 539.5L75.9 537.8L76.8 538.4L76.1 540.3L74.2 541.7L74.2 542.5L76.3 547.2L76.3 548.2L75.3 548.5L77.1 550.9L76.6 551.5L76.7 553.2L75.7 553.8L76.5 555.6L75.5 556.5L76.0 557.2L75.3 558.9L76.8 560.8L76.4 563.1L76.9 564.0L75.8 565.5L77.5 567.8L77.3 568.6L78.2 570.3L77.6 571.6L78.0 574.3L77.6 575.1L79.0 577.5L78.9 579.3L75.0 581.3L72.4 579.3L71.0 580.4L69.9 580.0L70.1 583.3L71.0 585.0L70.8 586.6L72.7 587.1L72.5 588.5L73.2 589.5L72.4 591.6L71.1 592.6L71.5 593.7L69.9 595.1L70.7 595.6L70.6 597.8L70.1 598.0L71.1 600.1L70.6 600.8L73.5 604.6L74.8 605.0L74.6 606.0L78.9 609.0L78.4 610.0L78.8 612.1L77.7 611.7L76.7 612.7L75.6 612.5L75.6 614.0L74.8 614.2L74.9 616.1L75.9 616.0L76.5 616.9L75.7 617.6L76.1 618.8L78.0 618.4L78.2 619.6L79.4 619.7L79.4 620.8L81.9 621.6L81.3 622.2L81.5 622.8L80.4 622.9L78.4 625.4L78.2 626.8L80.2 628.6L80.5 629.8L78.8 633.2L77.7 632.8L76.9 630.8L77.3 630.0L76.3 629.3L74.3 629.2L74.2 630.3L72.1 630.0L71.3 629.6L71.9 628.5L71.1 627.9L69.8 628.3L69.6 626.9L67.8 626.6L68.6 625.9L67.3 625.2L67.9 624.5L66.7 622.2L63.9 623.9L63.5 625.6L61.1 624.4L58.1 624.9L57.4 624.1L58.0 622.5L57.4 621.3L56.9 621.4L56.2 624.0L54.5 622.8L52.4 624.0L55.6 620.2L55.4 619.7L55.1 620.3L53.3 620.0L52.4 618.3L51.5 616.3L52.3 614.4L52.0 612.4L55.9 609.9L55.1 607.0L56.2 604.3L57.7 604.3L57.9 605.1L58.8 605.4L57.1 601.8L58.7 602.6L59.1 601.1L56.6 598.9L56.2 597.0L56.4 595.8L57.3 595.6L56.4 592.9L57.0 590.4L57.4 589.8L59.9 590.3L62.6 592.1L63.2 591.7L63.0 591.0L60.9 590.3L59.2 587.1L58.2 586.7L56.6 584.3L58.6 582.3L61.6 581.3L63.1 582.8L63.2 585.5L64.3 587.0L64.6 589.2L65.3 589.4L65.0 586.7L64.0 584.4L64.5 583.5L65.9 583.2L64.6 583.2L64.2 581.9L64.5 580.7L66.0 580.6L64.4 580.6L64.0 579.6L64.9 575.6L63.5 575.3L62.7 577.3L61.1 577.3L60.5 577.2L60.8 576.6L59.2 576.7L57.6 575.7L57.2 574.5L55.8 573.8L60.6 568.9L62.4 569.2L66.2 567.4L66.9 566.6L67.7 562.7L67.1 562.5L67.9 559.7L66.8 559.8L67.4 560.5L66.1 566.3L62.0 568.5L60.8 568.3L59.9 565.7L57.7 563.0L56.3 562.5ZM35.6 570.3L35.1 570.7L36.0 571.6L35.6 572.3L34.5 571.4L33.2 572.2L36.0 573.0L37.0 572.4L37.4 572.9L39.9 570.7L40.8 571.4L42.4 570.7L43.7 571.6L42.6 572.8L43.0 574.1L41.9 574.8L44.9 578.2L43.5 580.1L43.6 580.7L45.8 581.9L46.5 583.4L46.0 585.4L42.3 585.3L39.9 586.6L40.4 588.0L39.5 589.2L41.4 590.7L38.7 591.6L37.7 590.6L38.7 588.6L38.3 587.9L38.2 589.1L37.1 590.9L38.2 591.2L37.4 592.4L38.3 593.7L39.8 594.4L39.5 595.0L40.6 595.4L41.0 596.6L43.5 597.8L44.0 600.3L41.8 600.4L41.1 599.2L41.2 600.5L40.1 599.7L38.9 599.9L40.9 601.3L41.1 602.7L42.3 602.8L42.7 605.4L41.5 604.4L40.7 604.7L43.5 606.1L43.6 607.5L41.8 606.7L39.2 607.7L39.1 606.7L38.3 606.8L38.1 609.2L39.7 610.9L40.0 612.3L36.4 611.4L37.4 614.2L36.5 615.3L35.6 615.2L34.2 613.7L31.7 613.6L31.3 614.4L30.3 613.2L27.1 612.5L25.0 610.9L26.3 607.4L26.9 607.4L26.6 605.6L28.5 604.4L28.1 603.6L29.0 602.6L28.8 601.0L29.8 600.7L30.1 599.1L30.0 595.7L30.7 594.2L29.3 588.3L30.3 584.8L29.7 583.4L31.9 580.1L32.6 578.1L32.0 574.4L33.0 574.2L33.2 573.1L32.0 571.7L33.2 570.0L34.3 570.6L35.6 570.3ZM18.2 617.8L21.6 620.2L21.5 621.1L19.4 621.3L17.7 622.4L16.4 619.2L18.1 619.2L18.2 617.8ZM41.3 586.6L42.9 587.1L43.0 588.6L45.3 590.9L45.5 592.1L44.3 591.6L45.0 591.1L42.8 589.3L40.5 589.0L41.1 588.1L40.0 586.8L41.3 586.6ZM41.3 591.7L41.9 593.0L41.6 594.4L42.6 595.2L41.8 595.2L41.1 593.9L39.2 594.0L38.3 593.4L38.8 592.4L41.3 591.7ZM42.6 601.2L46.8 603.8L42.8 602.6L41.6 601.7L42.6 601.2ZM52.3 569.3L53.4 571.3L53.1 572.5L51.0 570.9L52.0 571.0L51.5 569.3L52.3 569.3ZM63.4 578.2L63.6 580.8L61.2 579.6L61.9 578.4L63.4 578.2ZM38.0 612.3L40.0 613.3L39.7 614.2L37.7 614.0L37.1 612.3L38.0 612.3ZM54.1 567.0L55.6 567.9L53.6 568.6L53.5 567.1L54.1 567.0ZM52.9 595.1L53.6 596.2L54.8 595.9L55.0 597.5L53.9 596.8L54.2 597.9L52.7 595.8L52.9 595.1ZM52.1 583.5L50.7 585.5L50.1 583.9L50.8 584.2L51.2 583.2L52.1 583.5Z","y0":529.2,"y1":633.2,"cx":53.5,"cy":587.4,"var":2.6,"serie":[1.4,1.9,2.2,3.1,2.4,2.0,2.8,2.6],"sectores":[{"n":"Acuicultura del salmón","p":36},{"n":"Lácteos y ganadería","p":21},{"n":"Turismo","p":14},{"n":"Pesca y astilleros","p":10}],"nota":"El salmón manda: cosechas, floraciones de algas y precios en el mercado estadounidense explican la mayor parte de la varianza."},{"cod":11,"nombre":"Aysén","romano":"XI","capital":"Coyhaique","d":"M24.4 739.1L22.8 740.4L21.5 740.2L19.3 738.5L20.9 735.8L22.2 735.9L21.0 735.0L23.0 732.9L25.5 733.4L26.1 735.4L23.6 738.0L27.7 736.8L27.8 738.7L28.8 739.2L28.1 738.4L28.1 736.6L32.0 736.9L28.0 736.3L28.3 735.7L34.1 735.2L31.2 735.1L34.1 732.2L30.9 734.8L29.4 734.4L28.0 735.1L27.4 734.9L27.3 733.1L29.7 731.8L26.3 732.4L26.7 733.0L26.3 733.3L24.6 731.7L24.7 731.0L26.9 731.0L27.6 730.1L26.9 730.7L24.6 729.9L24.1 731.3L23.3 730.0L25.3 727.1L25.3 726.4L28.9 723.2L29.5 724.0L29.4 726.2L30.0 724.1L29.3 723.2L31.0 723.4L31.7 727.4L32.0 726.4L31.3 723.3L32.9 722.1L33.8 720.4L31.4 722.6L31.0 721.9L30.2 722.4L30.3 721.5L29.2 721.0L30.2 717.8L31.8 718.2L33.0 716.5L31.4 716.6L28.0 711.9L28.7 710.4L27.0 710.8L23.3 709.3L23.0 710.0L24.4 711.1L21.6 710.9L21.0 711.2L21.0 712.6L20.3 712.8L17.6 711.0L17.3 711.9L13.6 710.0L12.2 706.4L14.4 703.2L14.7 701.1L12.2 705.1L10.9 706.2L6.5 708.0L5.4 707.1L3.3 708.3L1.4 711.4L2.1 711.5L3.4 709.1L6.0 709.3L6.3 709.9L5.2 709.9L5.5 710.4L4.7 711.5L5.5 710.8L6.7 711.3L6.8 712.6L5.3 713.8L7.1 712.4L7.9 713.3L6.7 715.6L4.2 716.6L2.8 716.0L3.0 715.1L1.8 714.5L1.1 713.4L1.3 712.5L0.0 711.9L0.4 711.1L0.1 708.1L0.9 707.2L1.0 705.4L4.4 705.2L2.9 703.9L4.6 703.3L5.1 703.9L5.1 703.0L6.2 702.4L5.9 701.6L7.3 702.4L6.3 701.1L8.6 699.1L9.6 699.7L9.9 697.1L11.4 698.6L13.2 699.1L10.9 697.7L12.2 694.8L13.0 694.6L15.5 696.6L14.7 694.8L16.1 692.7L18.1 694.5L18.6 693.5L17.6 691.7L18.2 689.8L19.8 689.5L19.2 688.7L19.3 687.6L17.8 689.3L16.2 689.7L15.7 691.4L12.7 691.6L11.8 689.6L14.3 688.4L13.0 688.5L11.8 687.3L11.2 685.1L11.9 684.4L15.6 686.1L14.2 684.8L14.4 684.2L15.4 685.1L17.4 684.5L17.1 683.5L19.3 683.0L19.6 685.2L20.6 683.4L22.6 683.7L23.3 684.8L22.6 685.7L23.8 685.6L23.6 686.4L24.7 686.6L24.1 688.9L24.6 689.3L25.3 687.0L25.9 686.9L23.9 683.8L24.6 683.7L24.5 682.5L26.6 682.6L27.7 683.8L29.7 682.8L31.7 683.0L31.9 684.3L30.4 685.2L32.8 686.0L32.9 687.6L28.7 689.2L31.7 688.8L32.0 691.4L30.6 692.4L28.5 692.4L30.4 692.7L32.3 691.5L32.3 688.5L33.1 687.9L34.2 689.1L34.4 690.5L33.5 692.6L27.4 695.6L25.0 694.3L24.5 693.0L24.3 694.1L27.0 695.9L33.2 693.7L32.7 694.9L34.3 695.2L34.5 696.7L36.6 698.5L34.4 694.8L33.4 694.9L34.2 692.5L35.9 692.2L37.0 694.1L38.7 695.1L38.7 696.0L38.0 698.9L34.4 704.6L35.9 705.5L37.0 705.1L37.8 702.8L38.7 702.6L38.8 703.3L40.1 704.0L41.2 702.9L40.1 703.9L39.2 703.7L38.4 702.0L38.8 700.4L40.7 697.8L42.1 697.1L44.8 697.5L44.5 696.8L42.1 696.2L43.1 693.5L45.6 689.5L46.3 689.3L46.3 688.6L45.5 688.7L45.6 687.8L46.9 685.4L48.7 685.1L49.9 683.4L52.8 684.6L50.2 683.0L48.8 684.9L46.6 685.2L42.8 683.9L42.6 683.2L45.5 679.8L50.3 678.9L47.5 677.9L47.8 677.1L46.0 677.7L44.5 680.1L41.9 681.9L43.4 672.9L47.6 668.6L49.9 668.1L51.2 670.8L56.6 673.4L57.4 671.9L57.4 670.6L56.9 670.4L55.7 670.8L55.5 671.6L53.2 670.9L49.1 666.4L46.2 667.8L43.3 666.5L43.0 665.2L44.7 666.7L44.7 664.9L47.1 665.3L47.3 664.8L46.7 664.1L47.8 663.8L46.8 662.4L47.8 661.7L46.8 662.2L46.0 661.4L46.2 658.3L48.9 658.5L50.7 657.6L51.3 658.2L58.5 652.3L59.5 653.1L59.0 650.0L60.1 648.9L60.2 646.5L61.7 645.4L61.2 644.5L61.8 641.2L60.2 643.4L60.6 643.9L60.1 645.4L59.0 645.3L58.4 644.3L58.8 643.9L57.2 642.6L57.4 642.0L55.2 641.9L55.5 640.6L53.8 639.2L49.6 638.3L49.8 637.4L51.4 636.6L50.8 635.8L49.7 636.9L47.8 636.5L47.8 634.7L49.1 635.4L49.1 633.1L50.2 633.1L50.7 634.3L51.5 633.5L50.9 632.5L50.8 630.5L52.7 629.0L52.1 628.1L53.7 625.6L54.3 626.1L56.1 625.4L56.7 626.3L57.4 626.2L56.8 624.8L54.7 624.8L52.6 623.6L54.5 622.8L56.2 624.0L56.9 621.4L57.4 621.3L58.0 622.5L57.4 624.1L58.1 624.9L61.1 624.4L63.5 625.6L63.9 623.9L66.7 622.2L67.9 624.5L67.3 625.2L68.6 625.9L67.8 626.6L69.6 626.9L69.8 628.3L71.1 627.9L71.9 628.5L71.5 629.7L74.2 630.3L74.3 629.2L76.3 629.3L77.3 630.0L77.0 631.6L77.7 632.8L78.8 633.2L77.9 634.4L76.4 634.9L77.9 637.5L76.9 638.8L77.8 640.6L76.7 641.2L77.6 643.0L79.6 642.1L80.1 642.8L85.8 642.1L87.1 643.3L88.9 643.1L91.0 644.5L90.4 645.4L91.8 646.4L91.7 647.8L89.3 648.7L88.9 649.7L89.7 650.6L89.5 652.5L88.0 654.1L85.7 653.6L84.1 652.1L80.1 653.5L77.8 652.5L76.5 653.9L72.2 652.7L72.8 653.9L72.1 655.2L72.7 655.7L72.6 656.7L73.9 656.8L75.9 658.4L77.2 657.3L80.4 658.9L82.3 658.9L83.3 662.4L86.9 666.4L86.6 667.2L87.1 667.9L85.8 669.6L83.0 670.8L84.0 673.8L82.4 674.5L80.1 674.3L78.3 675.5L78.8 676.2L77.8 677.7L78.0 679.5L77.5 680.0L78.7 682.7L78.1 683.5L80.3 684.9L81.2 687.6L79.2 690.9L75.2 692.3L76.3 693.9L77.9 694.1L79.0 696.6L78.4 698.4L80.1 703.7L80.6 708.4L76.8 711.6L74.3 712.1L74.8 713.7L74.1 714.8L74.3 716.8L75.9 717.9L74.4 719.9L76.3 721.6L76.5 722.5L75.6 723.9L76.2 724.3L73.4 724.0L73.5 726.3L72.5 727.6L70.8 727.4L69.5 730.0L68.5 729.6L66.6 731.1L67.6 732.8L66.9 734.6L67.2 735.2L65.0 737.4L65.0 738.2L64.4 738.6L64.7 739.4L63.4 740.0L63.9 743.3L62.8 745.5L64.8 746.6L64.5 749.3L66.2 749.6L67.3 751.6L67.1 754.5L68.9 757.1L67.8 758.3L65.8 758.0L66.5 759.1L65.3 760.0L65.9 761.0L64.5 763.0L61.8 762.2L62.8 771.6L60.6 773.7L59.6 773.7L57.5 776.6L54.4 776.2L53.5 777.6L53.2 779.8L50.4 783.4L50.4 784.4L33.3 768.8L32.6 769.3L29.9 768.3L28.2 769.2L27.6 768.7L27.9 768.0L26.6 767.6L27.0 766.5L25.9 765.2L30.2 761.5L34.7 765.0L34.9 764.4L33.1 763.1L33.5 760.4L36.4 759.7L33.6 759.7L32.1 759.2L31.3 758.0L29.2 758.0L30.2 757.0L34.8 756.7L29.8 756.8L28.8 757.5L29.0 755.8L27.8 754.4L28.0 753.9L26.1 753.3L24.1 751.1L23.7 750.0L24.8 749.2L21.9 750.1L21.0 748.7L21.1 746.9L23.3 745.3L27.4 747.4L27.1 748.0L28.6 750.7L28.8 752.7L30.0 754.1L30.2 753.2L29.4 752.6L27.9 747.4L32.0 746.5L33.6 746.8L33.4 747.2L34.8 748.6L36.4 748.1L37.0 748.8L36.8 749.8L38.9 748.2L39.0 749.5L38.4 750.3L39.8 750.0L42.2 751.3L42.5 753.0L41.4 754.6L42.7 753.3L43.2 754.9L44.3 754.6L43.4 754.0L44.4 752.4L47.9 754.8L49.8 754.2L46.6 753.8L48.2 752.4L48.8 749.9L46.9 752.7L44.2 751.2L42.2 748.3L43.3 746.6L41.4 747.4L40.8 744.1L41.2 743.3L43.1 743.9L43.2 745.2L44.4 746.1L49.2 746.2L47.7 745.4L44.6 745.7L43.3 744.6L43.7 743.7L43.3 742.4L39.6 740.2L39.1 738.2L40.7 735.5L39.7 736.2L40.3 733.6L39.1 733.3L38.8 733.9L40.5 734.0L38.5 738.3L38.9 740.6L35.8 742.2L33.3 741.6L32.7 740.4L30.0 740.8L28.6 740.1L26.8 740.8L25.9 740.1L27.2 739.8L27.5 739.5L26.8 739.2L23.0 740.5L24.4 739.1ZM53.8 641.5L55.3 643.6L54.1 645.8L56.0 643.3L57.9 644.0L59.7 646.2L57.2 649.5L54.0 648.3L55.7 649.9L57.6 650.4L56.9 652.0L54.2 653.5L51.4 656.7L48.0 657.6L45.4 654.8L47.5 653.6L49.3 653.9L47.6 653.1L46.1 653.9L44.8 651.7L44.2 649.3L45.5 647.5L45.8 648.2L49.1 649.2L47.7 646.5L50.6 647.7L51.0 647.3L48.3 645.4L48.3 643.6L49.9 642.5L50.5 643.3L51.9 643.0L52.7 644.9L53.1 644.7L52.5 642.9L51.3 642.3L53.8 641.5ZM6.7 747.3L7.5 748.6L7.3 749.6L8.2 750.3L7.3 751.2L8.8 751.3L9.6 756.1L11.1 758.5L10.7 759.2L11.5 759.0L12.5 761.1L12.8 765.4L9.3 768.3L7.8 761.5L8.5 759.9L7.4 759.1L7.6 757.9L7.2 759.0L4.5 760.0L2.9 758.9L3.9 757.7L5.8 757.5L4.3 757.3L4.9 754.2L3.3 754.0L3.9 752.9L2.7 752.4L2.4 750.0L4.4 748.6L5.4 749.4L6.1 747.5L6.7 747.3ZM19.2 750.9L20.4 752.7L19.7 753.4L20.8 754.6L20.8 756.3L22.0 757.1L22.4 759.0L22.0 759.8L20.1 759.9L22.0 761.3L21.7 763.7L22.9 765.8L23.6 766.4L23.3 764.6L24.3 764.9L24.5 766.6L23.9 767.9L22.0 768.3L19.3 766.4L15.1 766.1L13.9 765.0L13.6 761.9L15.3 759.9L17.8 759.0L17.8 760.7L18.7 762.2L19.9 761.0L19.7 760.1L18.4 759.4L17.7 756.2L18.9 754.1L18.8 751.9L19.2 750.9ZM37.0 659.1L39.0 661.2L39.5 662.8L39.7 665.2L38.8 666.3L39.3 667.7L38.0 667.7L37.0 666.3L33.6 666.9L33.1 665.4L31.9 664.6L32.0 663.8L28.8 664.3L28.4 661.7L29.7 660.4L32.1 660.5L37.0 659.1ZM9.6 749.5L11.5 749.9L11.2 750.5L13.2 749.9L17.1 753.8L18.3 752.6L18.4 753.6L17.2 755.3L17.5 758.5L16.2 758.5L13.4 760.8L10.7 755.3L11.6 754.9L11.5 754.2L10.2 754.3L8.7 749.7L9.6 749.5ZM31.0 648.0L34.6 648.5L35.8 649.6L36.2 651.1L33.6 651.1L31.9 652.7L28.4 654.1L26.3 653.2L25.7 651.6L30.6 651.9L25.1 650.8L24.9 648.9L25.4 648.6L31.0 648.0ZM32.4 743.6L34.0 742.0L36.0 743.5L37.1 742.6L38.3 743.2L37.7 745.2L35.3 745.6L35.9 744.2L34.0 745.7L31.5 745.3L27.9 746.3L23.7 744.1L26.1 741.8L27.7 742.5L27.2 741.2L28.3 740.8L33.2 742.6L31.0 743.5L31.8 743.3L32.3 744.9L32.8 744.0L32.4 743.6ZM6.8 762.1L7.4 760.0L8.1 760.6L7.5 761.3L8.2 765.2L3.7 768.1L1.6 766.9L2.1 766.2L4.3 766.5L5.5 765.2L4.1 766.2L3.3 765.9L5.5 763.9L2.3 765.8L1.3 765.5L0.8 763.8L1.3 763.4L1.1 761.6L2.0 761.0L2.0 760.1L3.8 761.1L7.2 759.7L6.8 762.1ZM25.3 672.3L27.6 673.3L29.6 677.3L29.0 679.4L26.4 679.8L27.3 680.0L26.0 680.9L26.3 681.5L24.1 682.0L23.3 680.5L24.5 679.5L23.4 677.0L24.1 676.9L24.2 674.1L25.3 672.3ZM42.6 684.3L46.8 685.3L44.5 690.3L41.1 694.8L41.8 695.0L41.7 695.8L40.0 697.7L41.0 691.2L40.5 687.6L41.9 686.8L41.3 686.2L42.6 684.3ZM39.8 672.0L41.9 672.5L42.4 673.4L41.9 677.4L40.2 677.6L41.6 679.2L40.8 681.6L38.9 679.3L37.5 678.9L36.9 677.4L37.8 676.9L38.1 674.4L39.8 672.0ZM13.3 743.5L14.2 744.6L13.7 745.7L14.3 746.5L17.6 747.7L18.0 748.6L16.4 750.0L14.7 749.6L17.1 750.5L16.7 751.9L13.1 749.3L11.3 749.5L12.6 746.7L13.7 747.2L12.7 746.6L8.6 748.3L9.7 747.0L8.8 746.7L9.7 745.8L11.6 745.3L13.3 743.5ZM30.3 655.6L34.1 656.5L35.1 658.7L32.1 659.8L29.3 659.6L27.5 660.6L25.4 659.6L29.0 656.1L30.3 655.6Z","y0":621.3,"y1":784.4,"cx":36.9,"cy":705.3,"var":1.1,"serie":[0.2,0.7,1.4,1.8,0.9,1.3,0.8,1.1],"sectores":[{"n":"Acuicultura","p":38},{"n":"Ganadería","p":18},{"n":"Turismo","p":17},{"n":"Pesca artesanal","p":12}],"nota":"Base productiva pequeña: un solo proyecto de inversión puede desplazar el índice varios puntos porcentuales."},{"cod":12,"nombre":"Magallanes","romano":"XII","capital":"Punta Arenas","d":"M76.0 929.1L74.6 930.4L70.5 928.6L66.4 924.5L63.8 919.3L64.9 918.7L64.5 917.0L67.6 914.5L71.0 914.6L71.5 918.1L68.7 920.7L70.1 920.7L73.1 918.8L72.6 915.7L73.0 913.9L76.1 913.7L77.0 915.3L77.0 918.3L78.1 920.9L76.7 922.4L73.4 923.8L73.4 925.2L73.9 925.1L77.1 923.7L78.5 921.1L77.9 917.0L78.6 913.2L81.0 913.0L81.7 911.7L86.7 909.9L88.7 905.7L91.2 903.1L91.3 902.2L90.0 899.6L86.1 899.4L85.6 897.7L85.9 896.8L82.3 891.5L72.9 891.3L70.9 890.0L70.9 890.7L70.4 890.1L68.6 891.1L67.8 890.4L66.6 890.6L66.4 892.1L64.8 893.9L65.4 893.9L64.8 895.0L62.1 892.8L63.6 891.3L65.6 891.4L65.5 889.8L62.7 891.1L62.0 892.3L59.8 891.0L57.7 891.9L56.6 890.7L56.3 892.2L56.8 892.6L55.9 893.0L55.3 895.1L54.0 896.4L54.5 896.7L56.2 893.3L58.4 893.7L59.9 895.4L55.9 900.0L54.9 899.3L53.1 901.0L54.5 902.9L53.8 904.2L54.3 907.2L53.5 908.6L50.8 909.8L49.8 908.7L49.7 906.8L49.2 908.6L49.9 909.4L49.0 909.9L45.7 908.4L44.3 906.8L50.0 902.9L47.9 904.0L46.2 902.2L41.8 900.0L43.3 899.2L46.8 900.2L48.1 899.6L48.3 898.5L47.3 898.9L47.3 897.7L48.2 897.2L48.3 896.1L47.2 895.9L45.8 891.7L45.4 892.0L46.2 893.9L46.2 895.8L46.7 895.9L45.7 897.1L44.7 896.5L46.0 894.9L45.1 895.4L44.6 894.3L44.0 895.9L40.7 897.2L41.6 898.3L41.2 898.8L40.2 897.8L38.8 897.9L41.4 895.2L39.8 893.5L41.4 891.4L42.7 891.8L41.6 890.3L42.9 888.9L40.2 887.1L40.8 885.8L42.2 885.8L42.0 884.7L42.6 884.3L41.2 882.7L42.2 880.5L42.1 879.7L41.3 879.8L38.5 874.4L39.1 873.8L40.0 874.2L41.1 876.8L42.4 877.7L42.5 879.2L43.5 879.0L43.8 878.4L43.2 877.8L44.2 877.3L45.9 880.2L48.2 879.5L48.6 876.7L50.0 877.0L53.4 875.1L53.1 877.6L51.9 877.8L52.1 878.3L50.7 880.3L51.6 880.6L52.2 879.0L53.4 878.9L54.6 880.2L54.2 882.2L54.8 882.3L55.9 881.2L56.4 877.9L58.2 875.7L57.6 874.9L56.5 875.9L55.8 879.1L54.9 880.1L53.9 877.9L54.2 874.4L54.7 874.5L54.8 875.7L55.2 875.4L55.3 872.3L57.2 871.0L58.3 871.8L58.7 875.1L60.0 877.2L61.0 876.9L62.5 880.0L61.4 882.4L61.6 883.9L60.8 884.5L61.4 884.8L60.6 885.6L59.2 884.4L58.2 886.3L57.6 886.2L57.7 887.0L54.4 889.2L58.6 887.2L60.2 887.3L62.2 888.8L62.7 888.4L60.0 886.8L63.0 884.5L63.1 881.7L63.9 880.1L60.0 874.5L60.2 871.1L61.3 870.1L61.2 871.5L62.3 872.0L62.1 870.8L62.8 871.3L64.1 870.4L64.2 869.1L63.1 867.8L64.3 865.5L63.1 864.3L63.1 863.2L60.4 862.0L59.4 859.2L55.2 858.1L54.4 856.8L51.8 855.8L51.8 853.9L49.7 855.6L48.4 855.4L47.9 856.4L49.0 856.9L50.6 856.0L52.2 856.8L52.6 857.7L51.4 859.6L53.3 857.0L54.7 858.7L58.4 860.1L59.6 863.0L60.4 862.5L62.8 863.8L62.8 864.5L60.4 867.4L57.9 866.9L57.1 865.2L54.9 864.5L53.9 865.4L51.5 862.4L50.6 863.2L50.3 862.2L49.3 862.4L49.6 861.1L47.3 859.3L48.8 861.4L48.8 862.6L50.0 863.8L51.4 863.1L53.3 865.8L52.8 866.6L52.0 864.9L50.7 865.0L50.4 866.0L51.7 864.9L52.6 867.1L51.8 868.4L49.0 868.9L49.3 869.5L51.7 868.9L53.8 866.5L55.1 868.1L54.6 869.4L50.8 870.9L50.1 873.7L50.2 876.1L48.7 876.2L48.1 870.7L47.4 869.9L47.1 865.3L45.8 862.3L47.0 867.7L47.9 878.3L42.8 875.1L42.8 874.2L41.9 873.5L40.4 868.7L40.6 866.7L41.5 866.8L43.4 871.0L44.9 872.6L43.7 870.1L44.2 869.6L41.3 864.6L43.2 863.9L43.2 863.2L41.1 863.8L40.4 863.1L39.5 866.0L39.0 866.0L38.0 863.6L36.9 863.3L37.0 861.6L36.5 860.8L34.8 860.7L35.0 859.0L36.0 859.3L36.1 858.3L36.8 858.3L33.7 856.9L33.6 856.3L34.7 855.6L34.0 853.9L35.3 852.4L38.7 855.2L40.7 860.3L41.3 860.2L40.0 857.4L41.3 857.4L40.5 856.9L40.5 855.2L39.0 852.6L38.9 850.8L39.4 850.1L37.8 848.4L37.7 847.4L38.8 846.6L39.4 849.4L39.9 849.6L39.4 847.0L37.9 844.1L38.2 846.2L35.3 848.9L33.9 845.5L33.2 845.4L33.1 847.2L30.9 846.8L31.1 843.8L30.2 842.7L31.5 840.6L32.5 840.3L31.2 839.5L31.2 840.3L29.0 842.3L28.2 839.4L29.0 837.2L31.2 836.4L34.6 837.1L35.9 836.6L36.2 838.6L38.0 839.4L39.8 838.5L38.0 838.5L35.7 835.2L37.1 834.1L38.0 835.2L38.8 835.0L37.5 834.3L37.7 832.4L37.2 830.5L37.9 829.6L40.4 828.9L42.1 829.9L42.2 830.9L42.7 830.0L43.9 830.3L42.0 828.6L40.3 828.4L38.3 825.7L39.3 824.4L40.8 824.7L41.8 823.5L41.4 823.0L41.8 822.5L41.0 822.4L40.5 824.4L38.1 824.9L36.6 830.3L36.7 833.4L35.2 834.3L34.7 835.5L32.6 835.5L30.6 833.1L32.2 831.9L32.1 830.7L31.0 831.2L30.5 832.8L27.4 824.3L29.6 823.6L29.9 825.2L30.7 825.6L31.0 825.0L30.0 824.8L29.8 824.1L30.3 824.1L35.5 826.4L30.4 822.7L33.1 820.4L32.0 820.3L31.1 821.8L30.0 821.7L30.0 822.3L28.6 823.1L26.6 821.6L27.9 818.9L27.2 817.0L27.2 818.4L26.0 821.4L22.2 818.6L22.6 817.7L21.9 816.9L18.9 815.3L19.4 814.0L21.6 812.1L22.4 812.0L23.1 813.4L22.3 811.3L21.2 812.0L21.6 811.1L24.5 809.6L25.8 810.5L26.0 811.8L27.9 812.9L27.9 814.6L29.8 816.7L31.8 815.9L33.7 817.7L32.7 815.6L29.8 815.3L29.0 813.9L29.2 812.7L26.8 810.2L26.0 808.1L26.9 806.5L27.5 807.7L28.8 807.1L30.8 809.1L35.3 809.9L35.1 809.1L32.9 808.6L34.3 806.5L36.7 806.3L35.4 806.3L34.9 805.4L32.7 808.4L31.3 807.9L30.1 805.9L26.6 805.2L26.7 802.2L27.1 802.9L29.4 801.1L32.4 801.5L32.3 800.2L28.0 800.7L27.5 801.6L27.0 797.7L31.6 794.5L33.5 795.3L33.3 796.4L33.9 795.2L35.1 795.2L36.0 797.9L37.8 799.7L38.4 797.9L37.0 797.8L36.0 794.3L31.7 793.5L32.4 786.2L33.7 786.0L34.4 787.7L37.4 788.5L35.1 787.5L35.2 786.9L32.6 784.4L31.8 785.5L30.1 784.0L31.0 784.8L31.2 786.1L31.0 788.7L30.2 790.5L30.1 794.4L28.8 794.4L26.9 791.1L25.3 789.8L26.2 787.9L25.7 781.3L26.2 779.9L25.2 780.5L24.6 778.5L24.8 777.1L25.8 777.5L25.8 776.1L26.9 775.6L25.0 774.1L25.0 771.8L26.6 769.9L26.6 768.8L27.9 769.9L30.0 768.7L34.0 769.3L50.4 784.4L50.6 786.1L51.9 786.1L52.2 792.2L50.7 794.1L48.9 798.5L43.4 803.2L43.1 805.5L42.2 806.0L42.0 807.1L44.3 807.8L44.5 809.2L44.0 810.5L43.3 810.5L43.6 811.5L42.8 813.7L44.6 814.6L44.1 816.2L46.0 818.4L44.5 819.7L44.9 820.9L45.7 820.7L45.9 824.2L46.5 824.6L46.0 825.2L47.5 827.5L50.4 829.5L49.3 832.3L50.3 833.2L49.3 834.5L50.4 833.6L51.9 833.8L54.2 832.3L55.5 830.1L58.8 828.4L61.4 830.4L62.4 828.5L63.8 827.9L65.3 829.0L66.2 828.4L67.7 829.7L66.4 832.7L67.5 833.9L68.4 836.7L68.1 840.6L67.8 841.5L65.9 841.3L65.9 843.1L65.2 844.0L66.4 847.1L68.2 848.4L68.2 849.4L66.2 850.8L66.0 851.6L66.9 851.7L67.2 852.7L66.6 854.2L66.9 855.9L66.3 856.5L66.5 857.3L65.5 857.4L64.6 859.4L66.9 859.7L67.0 860.7L67.7 861.0L67.5 863.2L70.8 864.6L74.5 868.8L74.7 870.0L72.8 871.7L73.3 872.2L75.7 873.0L113.9 873.0L124.1 877.9L130.1 877.9L134.2 879.6L137.2 882.1L145.6 883.9L145.7 885.7L144.2 884.1L136.1 883.0L131.1 879.5L129.3 879.5L124.7 881.7L124.2 885.7L122.7 886.3L122.3 887.1L123.0 887.9L120.4 890.7L118.3 890.3L116.9 889.0L110.5 892.4L109.4 894.5L107.3 894.1L103.2 896.9L102.4 896.7L103.7 895.3L103.4 894.7L102.1 895.2L102.4 896.0L101.9 896.5L101.4 896.0L99.3 897.7L99.0 896.7L97.2 898.1L96.4 897.0L96.6 898.0L97.7 898.0L97.6 898.8L98.9 898.8L97.3 900.5L96.9 902.5L95.9 903.1L98.0 904.0L97.1 904.8L97.3 906.3L96.1 909.5L96.5 910.5L94.9 913.0L94.9 916.7L93.8 919.2L95.1 925.8L95.2 927.1L94.6 927.1L94.8 928.0L94.1 929.1L94.1 932.5L87.5 936.4L76.6 931.4L75.1 929.7L76.0 929.1ZM99.6 952.1L102.2 952.2L99.5 955.7L100.0 955.8L99.7 957.1L98.5 959.2L99.4 959.0L100.7 960.7L101.4 960.6L99.7 958.1L100.8 955.4L102.5 953.8L105.2 956.7L107.6 958.1L107.9 957.2L108.9 957.6L110.9 959.3L110.0 957.6L105.6 955.5L104.6 954.3L105.1 953.7L103.4 953.3L103.9 951.8L103.3 950.5L96.2 948.8L95.4 945.8L95.8 945.4L95.1 944.7L97.1 944.8L101.7 948.4L105.9 950.3L108.4 951.9L108.2 952.6L109.7 952.9L109.4 953.7L111.0 954.9L111.4 954.7L111.0 953.2L112.1 953.1L109.7 951.7L110.0 950.8L111.2 950.5L112.0 948.8L113.7 949.0L115.0 950.8L115.1 952.4L114.5 953.2L115.6 952.9L117.3 955.3L115.6 957.6L117.7 956.2L118.9 957.7L118.2 958.8L119.2 960.1L118.5 960.8L119.4 960.0L118.8 958.7L119.5 957.1L117.8 954.7L117.3 952.2L116.4 951.0L116.9 949.9L121.6 952.5L121.0 955.3L122.2 957.2L122.5 956.5L121.9 955.1L124.0 955.2L122.8 953.9L123.1 951.5L124.7 951.9L125.9 953.4L129.9 955.4L129.7 957.0L126.9 959.6L126.1 961.8L124.7 963.2L126.3 962.5L126.9 964.3L126.5 962.1L128.7 958.7L130.0 958.1L131.3 959.6L130.5 957.4L131.3 955.6L134.5 956.2L133.7 954.6L127.5 950.9L115.9 945.7L112.5 942.5L112.9 941.9L111.0 937.8L110.3 934.3L110.4 932.4L111.2 931.3L114.7 930.0L115.8 928.3L120.6 927.7L126.8 923.7L127.7 922.2L126.9 918.7L125.2 917.9L116.1 918.8L109.5 922.1L107.1 919.3L104.8 918.7L104.9 916.6L106.3 916.4L104.5 916.6L104.4 915.5L105.4 906.5L107.0 905.0L107.5 907.3L106.8 908.1L108.7 908.2L111.0 906.5L111.9 903.4L111.4 902.3L107.7 902.9L108.5 901.6L108.2 899.7L105.2 898.3L111.2 897.2L112.8 899.9L115.4 900.9L117.0 899.0L119.9 897.6L121.9 894.4L121.8 890.9L125.3 887.9L130.9 895.9L134.3 894.6L138.0 892.1L138.7 890.8L141.9 894.7L141.8 970.9L137.9 969.1L137.6 969.6L139.9 971.6L139.3 972.1L131.9 973.2L121.1 969.5L120.9 967.8L122.1 966.8L120.5 967.7L120.4 966.8L119.9 967.5L120.4 967.8L120.0 968.9L119.1 968.9L118.6 967.7L118.0 969.1L116.7 969.3L115.4 969.2L114.5 966.9L114.1 967.3L114.4 969.6L112.0 969.9L112.1 968.0L109.5 970.3L107.3 969.8L107.1 968.0L109.1 964.6L110.3 964.0L109.9 963.7L107.4 966.0L106.8 969.2L101.4 967.2L101.7 967.9L100.9 968.6L105.2 968.9L106.3 970.0L101.4 971.5L99.1 970.4L98.8 969.8L99.3 969.2L96.6 968.6L97.5 967.6L97.1 966.9L99.1 966.5L99.0 965.4L98.3 966.3L95.0 965.9L97.2 963.7L95.6 963.3L93.6 967.1L93.1 966.7L94.0 964.6L93.9 962.6L94.5 962.0L92.9 961.3L92.9 962.4L90.9 962.6L90.3 964.2L89.2 964.0L89.3 963.2L88.1 963.3L87.6 962.2L89.7 961.8L88.6 961.3L88.3 959.8L87.1 959.5L87.6 958.9L87.1 958.4L86.8 960.0L85.5 959.5L86.8 960.4L86.7 961.8L86.4 960.6L85.7 960.7L85.6 962.4L84.1 962.2L84.3 963.3L83.7 963.7L83.2 962.0L81.2 961.9L82.0 960.5L80.2 961.3L80.5 962.6L79.8 962.6L79.9 960.8L77.6 960.9L77.8 961.9L77.0 962.3L75.2 962.3L74.0 961.0L75.0 960.2L73.1 957.6L74.0 956.4L73.6 955.6L76.6 956.0L77.5 958.2L79.4 959.4L79.5 958.4L78.3 957.0L79.4 956.7L82.1 958.4L79.4 956.2L76.1 955.0L76.8 953.9L79.0 953.6L80.2 955.8L82.9 957.7L83.0 956.5L83.9 956.8L81.8 955.7L81.2 954.0L83.7 954.9L83.1 953.7L83.5 953.6L84.3 954.8L85.9 954.8L86.0 955.8L86.4 955.7L86.0 954.6L85.1 954.3L85.5 952.9L86.4 952.7L89.0 953.5L89.9 954.9L90.9 954.4L93.6 955.6L95.4 954.3L94.9 952.7L96.5 951.3L99.6 952.1ZM7.9 797.0L7.1 796.5L8.3 794.7L6.7 794.0L8.3 792.7L6.7 793.8L6.2 792.2L6.7 791.4L5.1 792.7L4.4 788.6L3.9 788.4L3.9 786.3L6.5 785.7L8.5 790.7L12.8 790.6L8.9 790.3L6.8 785.9L7.1 784.9L8.7 785.0L8.6 786.5L9.0 785.5L10.8 788.4L9.6 785.6L11.0 785.9L12.9 785.0L11.6 783.2L15.9 787.1L16.2 783.3L17.5 780.2L15.0 777.6L17.2 776.1L14.3 777.1L13.8 775.8L14.2 775.3L13.3 774.2L16.4 772.6L13.1 773.6L12.7 772.4L13.0 770.9L15.9 772.3L13.6 770.3L17.8 767.8L18.1 769.1L17.0 769.9L17.6 770.4L18.4 769.7L18.0 768.1L19.2 767.4L21.5 769.0L21.9 772.3L22.2 769.5L23.8 768.8L23.8 774.0L25.0 776.7L24.0 778.0L25.0 780.8L25.1 781.6L24.5 781.8L25.1 783.0L25.2 785.5L24.8 786.1L25.3 787.4L24.6 788.6L24.1 792.7L23.6 793.5L22.6 793.1L22.7 794.3L23.5 793.7L24.2 796.7L22.5 797.4L24.3 797.1L25.3 798.8L25.4 801.5L23.5 800.9L24.9 802.0L24.8 806.0L22.9 808.2L21.3 806.7L22.8 808.4L20.3 810.7L16.1 810.1L15.6 809.4L15.4 808.6L16.2 807.5L18.4 806.2L19.8 806.5L18.9 805.6L15.6 808.0L14.8 806.8L15.3 804.5L16.4 804.3L17.0 801.9L18.4 801.1L17.1 801.5L16.4 803.1L15.3 802.1L15.3 800.7L15.9 800.2L15.0 798.2L15.5 796.3L17.3 796.8L15.6 795.7L15.5 794.2L19.2 790.9L18.9 790.6L19.7 789.0L18.8 790.3L17.8 788.6L17.2 788.7L18.3 789.8L18.4 791.1L14.3 794.5L13.9 792.6L13.4 796.2L12.0 795.3L13.5 796.7L13.2 798.3L13.9 796.8L14.5 797.1L12.9 800.2L13.2 800.8L13.9 799.9L14.6 800.7L14.4 802.6L12.7 805.8L11.8 805.9L11.8 804.7L10.4 804.3L7.9 797.0ZM84.2 894.7L85.6 896.8L85.2 897.8L85.4 900.5L83.9 900.6L75.3 906.2L73.0 910.5L70.8 911.0L68.4 908.0L67.9 908.3L68.8 910.0L65.5 907.8L63.1 908.6L65.6 908.9L66.7 909.7L66.6 910.7L69.3 912.6L67.8 913.2L66.0 912.2L65.6 912.8L66.8 913.5L66.0 914.1L64.3 912.6L63.4 913.0L64.5 913.9L62.1 913.0L64.9 914.7L64.1 916.2L62.6 916.8L63.2 918.2L62.5 918.8L60.1 918.0L62.9 919.6L65.6 924.0L62.2 924.2L62.6 923.2L61.7 923.6L58.6 921.4L58.1 919.7L57.0 920.3L57.3 918.7L55.1 919.0L55.6 918.0L54.7 918.4L53.1 916.5L50.2 915.3L47.0 911.6L50.5 912.7L54.5 911.9L58.3 914.2L58.1 915.9L59.0 916.2L58.7 913.9L56.3 912.4L58.6 912.8L57.3 911.6L60.1 911.2L58.9 911.2L59.0 910.4L56.7 911.3L54.9 910.5L54.8 909.6L55.7 907.9L54.4 906.6L55.0 906.3L54.0 904.1L54.9 903.2L53.1 901.4L55.2 900.9L57.0 899.2L57.4 900.2L59.5 896.9L61.3 898.4L61.1 899.6L58.9 901.7L59.0 902.8L61.9 899.5L62.4 901.0L64.1 900.5L64.3 901.6L64.9 899.9L70.1 894.7L72.4 895.5L74.3 894.5L75.7 895.9L78.1 896.1L84.2 894.7ZM143.7 972.1L146.0 972.9L148.0 975.8L147.4 977.5L145.9 977.4L145.4 978.4L143.5 978.6L142.9 977.7L143.0 979.8L139.0 979.7L133.8 975.8L132.8 977.2L134.5 977.4L134.5 978.7L138.2 980.5L146.9 981.1L147.1 982.1L149.0 982.6L147.7 983.1L149.6 983.7L150.5 984.5L150.2 985.0L145.4 985.1L143.5 986.0L142.5 985.8L141.3 983.8L140.6 984.1L142.0 985.4L141.8 986.5L147.8 987.1L148.1 989.0L151.7 989.0L151.5 990.5L150.8 991.0L153.6 991.6L152.2 993.1L154.6 995.5L153.7 996.2L154.5 996.9L152.8 1000.0L151.5 998.1L151.8 997.4L151.2 996.1L148.6 996.8L149.7 993.6L147.3 992.0L147.5 991.3L145.2 992.1L143.5 991.0L143.3 989.8L142.0 989.8L142.7 991.3L139.3 990.7L139.5 992.3L138.4 992.8L135.6 991.0L135.3 989.9L137.0 988.4L138.7 988.3L138.1 987.5L135.7 989.1L135.3 988.2L136.9 986.7L136.7 984.3L137.8 983.8L137.1 983.2L137.6 982.3L135.5 982.5L135.0 984.6L132.9 984.5L131.8 981.5L131.3 981.9L132.4 983.6L132.0 984.0L129.4 981.9L128.9 981.9L129.3 983.6L128.2 983.2L125.8 984.2L125.9 985.8L127.3 985.6L127.8 986.0L127.5 986.9L128.7 986.9L128.3 987.9L128.8 988.6L129.9 988.8L130.2 990.0L128.9 990.2L129.5 990.5L129.2 991.5L132.2 991.3L131.4 992.3L132.4 992.8L132.0 993.7L130.4 992.1L128.1 993.0L127.4 990.2L127.1 991.1L127.5 992.0L126.7 994.0L126.1 993.6L126.1 991.4L124.2 990.2L124.1 988.8L122.4 989.1L121.6 988.5L122.1 987.9L120.9 987.8L121.0 987.0L118.6 986.8L118.9 985.6L120.3 985.4L121.5 983.7L116.7 985.5L116.0 985.0L116.1 984.1L114.4 983.7L115.5 983.9L116.3 982.8L114.5 982.5L117.2 981.3L114.5 981.1L114.2 982.0L113.1 980.8L113.4 979.6L116.3 977.7L125.5 976.0L126.0 976.3L125.5 977.3L126.1 976.6L127.2 977.1L126.4 975.7L128.2 974.9L131.4 974.4L133.6 975.1L143.7 972.1ZM52.5 918.7L53.3 919.2L53.2 922.0L53.8 921.2L53.5 919.4L55.2 920.9L54.7 922.9L56.2 923.3L56.0 926.3L57.0 925.0L56.3 921.3L57.4 921.8L58.0 922.4L57.7 923.0L58.9 923.3L59.1 925.5L59.9 926.1L59.3 926.6L60.3 927.6L60.6 925.9L59.7 923.9L60.2 923.7L62.0 925.5L63.7 925.5L64.2 927.0L64.9 926.7L65.7 927.7L60.8 928.8L61.1 930.2L61.4 928.9L64.2 928.9L64.6 929.8L64.3 930.8L65.1 930.6L65.5 929.1L66.5 929.2L66.3 929.9L68.5 930.5L67.6 931.8L68.8 931.2L70.4 933.0L69.0 933.5L69.5 934.1L68.9 935.1L66.4 933.8L65.9 934.7L66.4 934.8L66.0 935.3L66.7 937.4L65.0 936.5L65.2 937.9L66.2 938.3L65.8 938.9L66.7 941.1L65.9 942.0L63.9 942.2L63.1 940.1L62.5 940.0L62.8 942.2L62.4 943.7L60.9 943.3L60.0 942.0L59.6 943.1L56.8 944.6L54.2 944.1L55.7 943.4L51.9 943.2L54.8 942.4L53.7 940.9L58.1 941.8L56.3 940.9L56.1 940.3L57.2 939.6L55.8 939.1L59.4 935.6L57.5 937.1L57.4 936.1L56.2 936.0L57.2 933.2L56.3 932.6L56.6 933.4L55.7 933.7L56.6 933.6L56.2 935.0L55.4 936.2L52.4 936.7L53.3 934.5L52.6 933.5L55.7 932.0L56.7 931.1L56.6 930.3L50.9 929.6L49.9 930.6L49.5 930.1L50.0 928.8L54.7 927.9L54.0 927.1L54.0 927.9L51.4 927.9L53.2 925.8L51.1 927.8L48.3 927.4L47.9 925.8L49.0 925.1L46.3 924.6L44.7 921.6L48.7 923.0L49.5 922.2L52.6 924.2L50.8 922.6L50.8 920.8L50.1 920.7L50.5 919.8L49.9 919.5L52.5 918.7ZM154.5 970.9L159.9 972.6L165.7 972.0L169.9 972.9L173.2 977.6L173.3 980.4L169.0 986.3L165.5 985.9L164.8 983.9L165.8 981.7L164.2 980.9L162.3 981.5L161.7 982.7L161.8 984.5L159.5 983.6L157.3 984.5L157.6 983.9L156.9 983.6L156.9 982.4L158.3 983.2L159.4 982.7L156.7 981.4L153.6 983.0L151.8 982.6L151.4 981.2L152.9 980.8L151.1 979.9L150.6 978.2L151.1 976.2L150.4 974.3L147.9 974.7L146.5 972.7L149.6 971.2L154.5 970.9ZM75.1 934.7L76.3 935.2L76.1 935.8L77.1 937.3L76.5 939.2L77.2 939.2L77.2 937.8L77.8 937.6L78.0 936.3L80.5 937.4L80.2 938.7L78.3 939.4L79.7 940.0L79.6 942.7L80.3 942.0L81.1 943.1L79.3 945.2L77.7 945.3L74.8 941.2L74.5 941.5L78.9 948.5L77.1 949.4L76.6 950.9L77.4 951.8L74.1 951.0L74.7 950.2L74.7 948.7L75.6 947.8L70.6 947.0L70.7 945.4L72.7 945.0L70.1 944.2L71.8 943.3L71.1 941.9L68.9 944.1L69.0 944.9L68.1 945.8L67.2 948.5L65.3 948.4L66.7 949.5L65.5 951.1L67.5 951.5L67.1 952.8L66.3 951.9L66.0 953.1L64.6 952.9L64.1 955.3L62.6 953.3L62.4 951.9L65.1 951.9L64.8 951.1L65.6 949.9L64.9 949.1L63.8 951.3L63.8 950.1L61.4 949.4L61.9 947.8L62.9 947.5L62.9 946.3L63.7 945.9L66.0 945.7L66.2 945.2L64.9 944.3L66.1 943.7L64.8 943.3L66.6 942.0L68.0 942.8L69.0 942.1L67.7 937.2L71.3 938.5L75.1 934.7ZM104.1 925.1L104.7 934.4L105.4 935.6L104.6 935.9L106.5 938.9L106.8 941.1L104.7 941.9L100.7 937.7L100.3 938.7L102.3 941.0L102.7 943.9L103.4 944.8L103.1 947.0L103.7 947.0L103.2 946.2L103.4 944.8L108.1 946.6L109.4 948.3L108.4 949.8L100.2 946.9L96.7 944.1L97.4 943.5L96.0 941.9L95.6 937.7L96.5 937.3L95.5 936.0L96.5 934.3L98.0 933.9L101.4 935.5L101.7 934.0L99.4 932.3L99.5 929.4L101.7 928.1L102.9 925.3L104.1 925.1ZM19.3 896.6L21.0 898.7L24.5 900.5L25.0 901.3L24.1 901.8L25.7 902.0L25.4 903.9L28.0 904.7L27.7 905.5L29.7 904.8L30.6 906.3L31.1 905.3L30.4 904.3L30.8 904.2L34.5 906.2L34.7 907.3L35.3 906.7L37.0 907.6L40.9 911.4L40.2 909.1L40.9 908.9L42.6 911.5L42.0 912.9L42.9 914.9L43.4 912.7L43.0 911.3L43.7 910.9L45.9 912.6L46.9 915.0L51.4 917.8L51.4 918.7L48.4 918.7L45.8 917.2L41.5 917.5L41.3 916.1L44.0 916.7L41.1 915.5L41.3 914.1L39.8 912.7L38.0 912.5L35.7 908.8L35.0 909.7L33.1 909.2L33.2 910.3L32.0 910.8L29.3 910.1L29.2 909.2L28.1 910.8L26.7 910.3L26.5 908.9L27.0 908.3L26.5 907.5L26.3 908.3L24.9 907.6L24.7 906.3L22.7 905.0L23.6 903.5L22.7 903.3L23.0 904.2L22.2 904.8L21.3 904.3L20.0 901.4L20.3 900.8L21.2 901.4L21.4 900.5L18.8 899.4L18.6 897.2L19.6 897.4L19.3 896.6ZM81.7 937.7L83.3 939.0L84.7 938.1L86.0 942.1L86.2 940.4L85.7 939.2L88.1 939.9L88.1 941.8L88.6 943.8L89.4 944.1L89.4 946.1L90.5 943.1L90.9 945.4L91.2 943.1L92.0 942.2L93.6 943.1L93.9 944.8L92.8 946.9L94.2 945.6L94.2 949.5L92.9 950.3L93.3 951.3L92.9 951.8L91.1 950.9L92.4 952.0L91.5 953.7L90.5 953.3L90.8 952.6L89.9 953.0L86.4 950.9L86.4 949.9L88.7 949.6L89.7 948.2L89.2 947.3L88.4 948.8L86.1 949.0L84.5 947.1L85.6 943.9L85.0 945.1L84.0 944.9L84.5 945.4L83.6 947.1L85.7 949.1L85.2 950.5L85.8 951.2L83.3 951.1L83.6 950.2L81.5 947.6L80.2 947.9L79.4 945.2L81.4 943.1L80.5 939.3L81.7 937.7ZM7.0 808.7L7.5 811.0L8.7 809.3L10.2 809.6L11.1 810.5L11.0 811.3L10.3 811.2L10.6 811.9L12.3 812.3L13.9 811.0L15.2 813.1L15.7 812.2L17.2 813.0L17.6 814.2L16.6 814.2L16.8 815.4L15.7 816.4L14.0 815.5L12.8 815.9L12.9 816.6L13.5 815.8L14.4 816.7L9.7 820.8L11.2 821.3L10.2 823.6L6.3 822.8L7.6 820.2L8.9 819.4L9.1 818.1L7.4 820.0L6.5 820.0L7.5 819.2L7.2 818.8L5.8 819.9L5.0 819.5L4.6 820.7L3.5 820.4L3.5 818.5L4.0 818.1L3.6 817.8L4.9 817.2L4.1 816.0L4.8 813.8L7.9 814.4L6.0 815.2L6.4 816.1L7.3 815.8L8.9 817.0L9.7 816.9L10.5 814.0L9.5 814.5L6.2 812.8L6.2 811.9L5.1 811.4L4.9 809.4L7.0 808.7ZM20.3 831.3L21.6 832.6L24.5 833.3L24.2 834.7L24.8 834.6L25.6 836.9L25.7 843.2L23.6 840.6L19.2 844.4L18.4 844.0L18.0 841.9L20.2 841.6L20.5 840.3L18.3 840.5L16.9 843.2L15.2 842.4L17.3 840.0L15.3 839.3L14.2 840.4L13.9 839.8L14.6 837.8L14.3 836.8L20.9 838.3L21.3 837.4L20.2 836.9L21.1 835.1L21.0 834.1L19.3 832.2L20.3 831.3ZM8.4 770.8L11.9 772.7L12.6 774.6L10.9 774.9L12.9 775.9L11.5 776.2L8.3 779.8L7.4 775.5L5.8 776.5L3.9 779.0L2.0 777.0L3.1 776.5L0.6 775.5L0.4 774.7L0.2 773.7L2.7 771.9L2.6 771.3L4.7 771.7L3.4 774.2L5.8 771.6L6.3 773.7L6.3 772.0L8.6 772.9L7.7 771.0L8.4 770.8Z","y0":767.4,"y1":1000.0,"cx":67.1,"cy":894.8,"var":5.2,"serie":[2.8,3.4,4.1,4.8,5.6,4.9,5.4,5.2],"sectores":[{"n":"Energía (gas, metanol, H2 verde)","p":34},{"n":"Ganadería ovina","p":16},{"n":"Turismo antártico y austral","p":22},{"n":"Pesca (centolla, merluza)","p":13}],"nota":"La agenda de hidrógeno verde y el turismo de temporada alta concentran el crecimiento en un calendario muy acotado del año."}]};
+
+/* ============================================================
+   VISTA SOLAR · indicadores fotovoltaicos y renovables por región
+   Fuentes:
+   · ACERA, Boletín de Estadísticas julio 2026 (act. 01-ago-2026):
+     Fig. 7 capacidad ERNC+almacenamiento por región · Fig. 9 Net Billing
+     por región (jun-26) · Tabla 3 capacidad · Tabla 4 serie histórica ·
+     Tablas 5 y 6 pipeline ERNC y almacenamiento.
+   · CNE / Coordinador Eléctrico Nacional: n.º de centrales ERNC (may-2024).
+   · Catastro de proyectos utility y PMGD del informe base (corte 2026).
+   ============================================================ */
+const SOLAR = {
+  corte:'julio 2026',
+  pais:{
+    fv:12595, termo:108, ernc:20556, matriz:39669, pctMatriz:31.8, pctErnc:51.8,
+    pruebas:1275, construccion:3096, aprobado:19092, calificacion:6448,
+    bessSolarMw:1905, bessSolarMwh:8216, bessConstrMw:3580, bessConstrMwh:15100,
+    bessTotalMw:2655, bessTotalMwh:11250,
+    pmgd:3868, pmg:501, nbMw:513, nbInst:42824,
+    recorteYTD:2680, genPct:23.9,
+    serie:[[2013,10],[2014,224],[2015,600],[2016,1120],[2017,1894],[2018,2336],
+           [2019,2691],[2020,3275],[2021,4615],[2022,6626],[2023,8702],
+           [2024,10628],[2025,11903],[2026,12595]]
+  },
+  reg:{
+    15:{mw:184,  pct:0.88,  centrales:null, nb:[4.5,275],     pmgd:null, recorte:35,
+        perfil:'Prácticamente toda su ERNC es solar FV: no hay eólica ni biomasa de peso.',
+        nota:'Tiene la mayor irradiancia del país, pero su bajo peso nacional (0,9%) responde al tamaño de la red local, no al recurso. Engie opera aquí dos plantas pequeñas —Pampa Camarones (6,2 MW) y El Águila—; la ampliación aprobada de Pampa Camarones casi triplicaría por sí sola la ERNC regional.',
+        obras:[
+          {n:'Pampa Camarones · ampliación', c:'Arica – Camarones', mw:300, p:'Engie', a:'RCA aprobada 2022', e:'rca', b:'180 MW · 5 h'}]},
+    1:{ mw:639,  pct:3.05,  centrales:15,   nb:[3.5,233],     pmgd:null, recorte:70,
+        perfil:'Solar FV dominante, concentrada en pocas centrales de gran tamaño.',
+        nota:'El 100% de su cartera en calificación ambiental es solar. Atacama Solar y Granja Solar suman ~250 MW, pero ninguna incorpora almacenamiento.',
+        obras:[
+          {n:'Atacama Solar',  c:'Pica',         mw:150, p:'Sonedix', a:'~2020', e:'op'},
+          {n:'Granja Solar',   c:'Pozo Almonte', mw:100, p:'—',       a:'~2020', e:'op'}]},
+    2:{ mw:7596, pct:36.22, centrales:53,   nb:[6.2,1938],    pmgd:null, recorte:1190,
+        perfil:'Solar FV mayoritaria, más eólica, la única termosolar del país y el grueso del BESS nacional.',
+        nota:'Concentra el 36% de toda la ERNC de Chile. Aquí está la mayor planta FV del país (CEME1, 480 MW) y los dos mayores híbridos FV+BESS en construcción. También es donde más energía se vierte.',
+        obras:[
+          {n:'CEME1',                        c:'María Elena', mw:480, p:'Generadora Metropolitana (EDF+AME)', a:'2024–25', e:'op'},
+          {n:'Oasis de Atacama · fases 1-3', c:'María Elena', mw:451, p:'Grenergy → ContourGlobal (KKR)',     a:'2025',    e:'op', b:'2.500 MWh'},
+          {n:'Sierra Gorda Solar',           c:'Sierra Gorda',mw:404, p:'Enel Green Power',                   a:'2023–24', e:'op'},
+          {n:'Finis Terrae + Extensión',     c:'María Elena', mw:286, p:'Enel Green Power',                   a:'2016 · 2021', e:'op'},
+          {n:'Oasis de Atacama · Gabriela',  c:'María Elena', mw:272, p:'Grenergy → CVC DIF',                 a:'2026',    e:'op', b:'1.100 MWh'},
+          {n:'Sol del Desierto',             c:'María Elena', mw:230, p:'Atlas Renewable Energy',             a:'2022',    e:'op'},
+          {n:'Cerro Dominador (FV + CSP)',   c:'María Elena', mw:210, p:'Grupo Cerro',                        a:'2018 · 2021', e:'op', b:'térmico 17,5 h'},
+          {n:'PV Coya',                      c:'María Elena', mw:181, p:'Engie Chile',                        a:'2023',    e:'op', b:'139 MW / 638 MWh'},
+          {n:'Sol de Lila',                  c:'Antofagasta', mw:161, p:'Enel Green Power',                   a:'2022',    e:'op'},
+          {n:'Bolero',                       c:'Sierra Gorda',mw:147, p:'Enel Green Power',                   a:'2018',    e:'op'},
+          {n:'Tamaya',                       c:'Tocopilla',   mw:114, p:'Engie Chile',                        a:'2022',    e:'op', b:'68 MW / 418 MWh'},
+          {n:'Pampa Tigre',                  c:'Antofagasta', mw:100, p:'Mainstream (Andes Renovables)',      a:'2022',    e:'op'},
+          {n:'Capricornio',                  c:'Antofagasta', mw:88,  p:'Engie Chile',                        a:'2023',    e:'op', b:'48 MW / 264 MWh'},
+          {n:'PFV+BESS Cristales',           c:'—',           mw:400, p:'AES Andes',                          a:'en obra', e:'co', b:'340 MW / 1.360 MWh'},
+          {n:'Proyecto Híbrido Pampas',      c:'—',           mw:348, p:'AES Andes',                          a:'en obra', e:'co', b:'340 MW / 1.360 MWh'}]},
+    3:{ mw:4036, pct:19.25, centrales:47,   nb:[7.8,2440],    pmgd:null, recorte:775,
+        perfil:'Solar FV mayoritaria con eólica creciente; cuna de las primeras plantas utility del país.',
+        nota:'Irradiancia de 8,5–9 kWh/m²/día, la mayor del planeta. Aquí partió la escala utility en Chile con Luz del Norte (2016) y El Romero (2017), y hoy alberga Guanchoi (398 MW), la segunda planta FV más grande del país. Casi ninguna de sus plantas históricas incorpora almacenamiento.',
+        obras:[
+          {n:'Guanchoi',         c:'Diego de Almagro', mw:398, p:'Enel Green Power',              a:'2023', e:'op'},
+          {n:'Campos del Sol',   c:'Diego de Almagro', mw:375, p:'Enel Green Power',              a:'2023', e:'op'},
+          {n:'El Romero Solar',  c:'Vallenar',         mw:196, p:'Acciona Energía',               a:'2017', e:'op'},
+          {n:'Río Escondido',    c:'Tierra Amarilla',  mw:145, p:'Mainstream (Andes Renovables)', a:'2021', e:'op'},
+          {n:'Luz del Norte',    c:'Copiapó',          mw:141, p:'First Solar → Toesca (2023)',   a:'2016', e:'op'},
+          {n:'Valle Escondido',  c:'Tierra Amarilla',  mw:105, p:'Mainstream (Andes Renovables)', a:'2022', e:'op'},
+          {n:'Domeyko',          c:'Vallenar',         mw:83,  p:'Verano Energy',                 a:'2026 est.', e:'op', b:'660 MWh'},
+          {n:'Los Loros',        c:'—',                mw:54,  p:'Engie Chile',                   a:'—',    e:'op'}]},
+    4:{ mw:1430, pct:6.82,  centrales:74,   nb:[32.0,982],    pmgd:382,  recorte:155,
+        perfil:'Bisagra del sistema: eólica histórica y solar FV repartidas, con fuerte entrada de PMGD.',
+        nota:'Última región del norte con recurso solar de primer nivel y primera donde el PMGD pesa de verdad (382 MW). El Pelícano abastece cerca del 42% del consumo eléctrico del Metro de Santiago. Su vertimiento ya es el tercero del país.',
+        obras:[
+          {n:'El Pelícano', c:'La Higuera', mw:100, p:'Actis (ex SunPower/Total)', a:'2018', e:'op'},
+          {n:'Perico',      c:'—',          mw:6,   p:'—',                         a:'RCA jul-2026', e:'rca'}]},
+    5:{ mw:723,  pct:3.45,  centrales:83,   nb:[76.6,4949],   pmgd:439,  recorte:40,
+        perfil:'Sin solar utility de escala: lo fotovoltaico entra por PMGD y por autoconsumo.',
+        nota:'Segunda flota Net Billing del país (76,6 MW en 4.949 instalaciones) y 439 MW de PMGD. La cercanía al consumo compensa una irradiancia menor que la del norte.',
+        obras:[{n:'Limachino III', c:'—', mw:9, p:'—', a:'RCA jul-2026', e:'rca'}]},
+    13:{mw:1163, pct:5.55,  centrales:131,  nb:[150.4,15129], pmgd:700,  recorte:30,
+        perfil:'Máxima densidad de centrales del país, casi todas PMGD solar y mini hidro de pasada.',
+        nota:'131 centrales ERNC, el mayor conteo de Chile, pero de pequeña escala. Sus dos plantas de escala utility son vecinas en el corredor de Til Til y Colina. Concentra además el 29% de toda la capacidad Net Billing nacional: 150,4 MW en 15.129 instalaciones.',
+        obras:[
+          {n:'Santiago Solar', c:'Til Til', mw:115, p:'AME + EDF Power Solutions',          a:'2018', e:'op', b:'360 MWh en desarrollo'},
+          {n:'Quilapilún',     c:'Colina',  mw:110, p:'SunEdison → Atlas Renewable Energy', a:'2017', e:'op'}]},
+    6:{ mw:866,  pct:4.13,  centrales:106,  nb:[43.1,1702],   pmgd:545,  recorte:10,
+        perfil:'Arquetipo del modelo distribuido: muchas centrales pequeñas conectadas en redes de distribución.',
+        nota:'106 centrales ERNC y 545 MW de PMGD, el segundo del país. Alcones está en pruebas y sería su primera planta solar de escala utility: hasta ahora toda la fotovoltaica regional era de ≤9 MW junto a los centros de consumo.',
+        obras:[
+          {n:'Alcones', c:'Marchigüe', mw:90, p:'Opdenergy', a:'en pruebas 2026', e:'pr', b:'90 MW / 500 MWh'}]},
+    7:{ mw:982,  pct:4.68,  centrales:96,   nb:[78.2,5233],   pmgd:541,  recorte:55,
+        perfil:'Mezcla de mini hidro, biomasa y PMGD solar; sin utility fotovoltaica en operación.',
+        nota:'541 MW de PMGD y 5.233 instalaciones Net Billing. El Coipo Solar (145 MW con BESS) obtuvo RCA en julio de 2026 y Mineru Solar (Pelarco, 133 MW) está en calificación ambiental: cualquiera de los dos sería la primera planta solar de escala de la región.',
+        obras:[
+          {n:'El Coipo Solar', c:'—',       mw:145, p:'—', a:'RCA jul-2026', e:'rca', b:'con BESS'},
+          {n:'Mineru Solar',   c:'Pelarco', mw:133, p:'—', a:'en el SEA',    e:'ev'}]},
+    16:{mw:388,  pct:1.85,  centrales:42,   nb:[24.3,1978],   pmgd:236,  recorte:5,
+        perfil:'Cerca de dos tercios de su ERNC son PMGD solar: matriz renovable mayoritariamente fotovoltaica distribuida.',
+        nota:'236 MW de PMGD sobre 388 MW de ERNC total. Es, en proporción, una de las regiones más fotovoltaicas del país pese a su tamaño absoluto modesto.',
+        obras:[]},
+    8:{ mw:1256, pct:5.99,  centrales:65,   nb:[28.1,3373],   pmgd:307,  recorte:30,
+        perfil:'Dominada por biomasa forestal y eólica; lo solar entra por PMGD y autoconsumo.',
+        nota:'1.256 MW de ERNC, pero la fotovoltaica es minoritaria: 307 MW de PMGD y 3.373 instalaciones Net Billing frente a un parque de biomasa asociado a la industria forestal.',
+        obras:[]},
+    9:{ mw:1049, pct:5.00,  centrales:27,   nb:[15.6,1953],   pmgd:null, recorte:70,
+        perfil:'ERNC casi enteramente eólica y de biomasa, concentrada en pocas centrales grandes.',
+        nota:'Su vertimiento es eólico, no solar. Aun así, el 100% de su cartera en calificación ambiental es fotovoltaica (~223 MW), lo que anticipa un cambio de perfil.',
+        obras:[]},
+    14:{mw:136,  pct:0.65,  centrales:22,   nb:[16.7,1017],   pmgd:null, recorte:5,
+        perfil:'Biomasa y mini hidro de pasada; sin solar utility ni PMGD relevante.',
+        nota:'Toda la fotovoltaica regional son 16,7 MW de Net Billing en 1.017 instalaciones: más autoconsumo que generación.',
+        obras:[]},
+    10:{mw:483,  pct:2.30,  centrales:3,    nb:[24.9,1332],   pmgd:null, recorte:8,
+        perfil:'Base eólica en muy pocas centrales; la solar es marginal por latitud y radiación.',
+        nota:'El Tepual Norte (18 MW con BESS) obtuvo RCA en julio de 2026 y sería el primer FV+BESS del sur austral. El conteo de centrales corresponde a mayo-2024 y quedó desfasado frente a la capacidad actual.',
+        obras:[{n:'El Tepual Norte', c:'—', mw:18, p:'—', a:'RCA jul-2026', e:'rca', b:'con BESS'}]},
+    11:{mw:24,   pct:0.11,  centrales:14,   nb:[0.9,177],     pmgd:null, recorte:null,
+        perfil:'Sistemas medianos aislados del SEN: eólica y mini hidro de pequeña escala.',
+        nota:'No está conectada al Sistema Eléctrico Nacional. Lo fotovoltaico se reduce a 0,9 MW de Net Billing en 177 instalaciones.',
+        obras:[]},
+    12:{mw:16,   pct:0.08,  centrales:6,    nb:[0.9,113],     pmgd:null, recorte:null,
+        perfil:'Sistema aislado y la menor irradiancia del país; la solar aparece solo como autoconsumo.',
+        nota:'16 MW de ERNC en sistema aislado. Con 0,9 MW en 113 instalaciones, es el extremo opuesto de Antofagasta dentro del mismo territorio.',
+        obras:[]}
+  }
+};
+
+/* ---------- geometría del lienzo ---------- */
+const VW=780, VH=1040;
+const MX=10, MY=22;                 // origen del mapa
+const FX=244, FW=VW-FX-12;          // franja de filas
+const FY=24, FH=61;                 // alto de cada fila
+const CERO=524, ESC=25.5;           // x del cero y px por punto porcentual (vista global)
+const BASE=372, ANCHO=296, TOPE=8000; // origen, ancho útil y tope de escala (vista solar)
+
+const svg=document.getElementById('vista');
+const detalle=document.getElementById('detalle');
+const resumen=document.getElementById('resumen');
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a={})=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);return n;};
+const suave=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ---------- formato ---------- */
+const miles=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const dec=(n,d=1)=>n.toFixed(d).replace('.',',');
+
+/* ---------- color ---------- */
+const mezcla=(a,b,t)=>{
+  const h=s=>[1,3,5].map(i=>parseInt(s.substr(i,2),16));
+  const [r1,g1,b1]=h(a),[r2,g2,b2]=h(b);
+  const v=(x,y)=>Math.round(x+(y-x)*t).toString(16).padStart(2,'0');
+  return '#'+v(r1,r2)+v(g1,g2)+v(b1,b2);
+};
+const tono=v=>{                       // divergente, vista global
+  const t=0.2+0.8*Math.min(Math.abs(v)/6,1);
+  return v>=0 ? mezcla('#E4EBEA','#0B6E6B',t) : mezcla('#EFE2E6','#A32A4E',t);
+};
+const tinte=v=>v>=0?'#0B6E6B':'#A32A4E';
+const SOLMAX=Math.max(...Object.values(SOLAR.reg).map(s=>s.mw));
+const tonoSol=v=>{                    // secuencial, vista solar
+  const t=Math.pow(Math.min(v/SOLMAX,1),0.5);
+  return t<=0.5 ? mezcla('#F3EAD8','#E0A040',t*2) : mezcla('#E0A040','#8F4A0E',(t-0.5)*2);
+};
+const SOL='#BE7418', SOLOSC='#8A4A11';
+const fmt=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1);
+
+const clase=v=>
+  v>=2   ? 'Expansión'
+: v>=0.8 ? 'Crecimiento moderado'
+: v>-0.8 ? 'Estancamiento'
+: v>-2   ? 'Desaceleración'
+:          'Contracción';
+
+const impulso=r=>{
+  const d=r.var-r.serie[r.serie.length-2];
+  return Math.abs(d)<0.25 ? {s:'→',t:'sin cambios respecto al período previo'}
+       : d>0 ? {s:'↗',t:'acelera '+d.toFixed(1)+' pp respecto al período previo'}
+             : {s:'↘',t:'cede '+Math.abs(d).toFixed(1)+' pp respecto al período previo'};
+};
+
+const sol=r=>SOLAR.reg[r.cod];
+const rangoSol=(()=>{                 // ranking de capacidad por región
+  const o=Object.entries(SOLAR.reg).sort((a,b)=>b[1].mw-a[1].mw), m={};
+  o.forEach(([k],i)=>m[k]=i+1); return m;
+})();
+
+/* ============================================================
+   DEFINICIÓN DE LAS DOS VISTAS
+   ============================================================ */
+const VISTAS={
+
+global:{
+  titulo:'Actividad económica por región · Chile',
+  rotulo:'Monitor regional · Chile',
+  h1:'Actividad económica<br><em>por región</em>',
+  bajada:'El país es el eje vertical del gráfico. Cada región se conecta con su barra de variación en doce meses: pasa el cursor por el mapa o por una fila para fijar el detalle.',
+  meta:()=>`16 regiones<br>Último período: <b>${DATA.periodos[DATA.periodos.length-1]}</b><br>Variación interanual, %`,
+  aria:'Mapa de Chile con la variación de actividad económica por región',
+  ejeRot:'VAR. 12 MESES %',
+  ticks:[-6,-3,0,3,6],
+  tickX:t=>CERO+t*ESC,
+  tickTxt:t=>(t>0?'+':t<0?'−':'')+Math.abs(t),
+  tickCero:t=>t===0,
+  escala:`<span>−6%</span><i style="background:linear-gradient(90deg,var(--con),#DFC7CE,#E7EBEE,#C4D8D6,var(--exp))"></i><span>+6%</span>`,
+  orden2:'Por variación',
+  ordenAria:'Orden de las filas',
+  valor:r=>r.var,
+  mapaFill:r=>tono(r.var),
+  barra:r=>{
+    const w=Math.abs(r.var)*ESC;
+    return {x:r.var>=0?CERO:CERO-w, w:Math.max(w,1.2), fill:tinte(r.var),
+            tx:r.var>=0?CERO+w+7:CERO-w-7, anc:r.var>=0?'start':'end',
+            txt:fmt(r.var)+'%', col:tinte(r.var)};
+  },
+  etiqueta:r=>`${r.nombre}, variación ${fmt(r.var)} por ciento`,
+  pie:'<b>Sobre los datos.</b> Las cifras cargadas son un conjunto de demostración con la estructura correcta, no una serie oficial. El INE discontinuó el INACER en 2018, así que para poblar el archivo con datos reales conviene usar el PIB regional del Banco Central (anual), los indicadores sectoriales regionalizados del INE o el Imacec como referencia nacional. Reemplaza el arreglo <code>regiones</code> del script al final del archivo.',
+  detalle:r=>{
+    const imp=impulso(r);
+    return `
+    <p class="sub">Región ${r.romano} · capital ${r.capital}</p>
+    <h2>${r.nombre}</h2>
+    <div class="granCifra">
+      <b style="color:${tinte(r.var)}">${fmt(r.var)}%</b>
+      <span class="pastilla" style="color:${tinte(r.var)}">${clase(r.var)} ${imp.s}</span>
+    </div>
+    <p class="pieCifra">Variación en 12 meses · ${DATA.periodos[DATA.periodos.length-1]} · ${imp.t}.</p>
+    ${chispa(r.serie)}
+    <p class="sub" style="margin-top:10px">${DATA.periodos[0]} → ${DATA.periodos[DATA.periodos.length-1]}</p>
+    <p class="sub" style="margin-top:16px">Composición de la actividad</p>
+    ${r.sectores.map(s=>`<div class="sector">
+        <span>${s.n}</span><span>${s.p}%</span>
+        <div class="pista"><i style="width:${s.p*2.2}%;background:${tinte(r.var)}"></i></div>
+      </div>`).join('')}
+    <p class="nota">${r.nota}</p>`;
+  },
+  inicial:()=>{
+    const exp=DATA.regiones.filter(r=>r.var>=0.8).length;
+    const est=DATA.regiones.filter(r=>r.var<0.8&&r.var>-0.8).length;
+    const con=DATA.regiones.filter(r=>r.var<=-0.8).length;
+    return `<p class="sub">Panorama</p>
+    <h2>Elige una región</h2>
+    <p class="vacio">Pasa el cursor por el mapa o por cualquier fila del gráfico para ver su tendencia, su composición sectorial y qué mueve el índice.</p>
+    <div class="repartos">
+      <div><b style="color:var(--exp)">${exp}</b><span>en expansión</span></div>
+      <div><b>${est}</b><span>estancadas</span></div>
+      <div><b style="color:var(--con)">${con}</b><span>en contracción</span></div>
+    </div>`;
+  },
+  resumen:()=>{
+    const top=[...DATA.regiones].sort((a,b)=>b.var-a.var), ult=top[top.length-1];
+    return `<p class="sub">Extremos del período</p>
+    <div class="sector" style="margin-top:10px">
+      <span><b>${top[0].nombre}</b></span><span style="color:var(--exp)">${fmt(top[0].var)}%</span>
+      <div class="pista"><i style="width:${Math.abs(top[0].var)/6*100}%;background:var(--exp)"></i></div>
+    </div>
+    <div class="sector">
+      <span><b>${ult.nombre}</b></span><span style="color:var(--con)">${fmt(ult.var)}%</span>
+      <div class="pista"><i style="width:${Math.abs(ult.var)/6*100}%;background:var(--con)"></i></div>
+    </div>
+    <p class="nota">La brecha entre ambos extremos es de ${(top[0].var-ult.var).toFixed(1)} puntos porcentuales.</p>`;
+  }
+},
+
+solar:{
+  titulo:'Capacidad renovable y solar por región · Chile',
+  rotulo:'Monitor fotovoltaico · Chile',
+  h1:'Matriz renovable<br><em>por región</em>',
+  bajada:'La barra mide la capacidad ERNC y de almacenamiento instalada a julio de 2026. En Arica, Tarapacá, Antofagasta y Atacama esa cifra es casi enteramente solar FV; hacia el sur pesan la eólica y la biomasa, y lo fotovoltaico entra por PMGD y Net Billing.',
+  meta:()=>`16 regiones<br>Corte: <b>${SOLAR.corte}</b><br>Capacidad instalada, MW`,
+  aria:'Mapa de Chile con la capacidad renovable instalada por región',
+  ejeRot:'MW INSTALADOS',
+  ticks:[0,2000,4000,6000,8000],
+  tickX:t=>BASE+t*ANCHO/TOPE,
+  tickTxt:t=>miles(t),
+  tickCero:t=>t===0,
+  escala:`<span>0</span><i style="background:linear-gradient(90deg,#F3EAD8,#E0A040,#8F4A0E)"></i><span>7.600 MW</span>`,
+  orden2:'Por capacidad',
+  ordenAria:'Orden de las filas',
+  valor:r=>sol(r).mw,
+  mapaFill:r=>tonoSol(sol(r).mw),
+  barra:r=>{
+    const s=sol(r), w=s.mw*ANCHO/TOPE;
+    return {x:BASE, w:Math.max(w,1.2), fill:SOL,
+            tx:BASE+Math.max(w,1.2)+7, anc:'start',
+            txt:miles(s.mw)+' MW', col:SOLOSC};
+  },
+  etiqueta:r=>`${r.nombre}, ${miles(sol(r).mw)} megavatios renovables instalados`,
+  pie:'<b>Sobre los datos.</b> La barra corresponde a la capacidad ERNC y de almacenamiento instalada por región (<b>ACERA</b>, Boletín de Estadísticas de julio 2026, Figura 7), que en el norte grande es casi enteramente solar FV. No existe una tabla oficial de MW solar-FV desagregados por las 16 regiones: por eso el detalle se apoya en Net Billing (ACERA, Figura 9, junio 2026), PMGD (marzo 2026) y el catastro de proyectos utility. El n.º de centrales ERNC proviene de la CNE/Coordinador con corte a mayo de 2024, de modo que en algunas regiones no calza con la capacidad de julio de 2026. Los recortes por región se leen de la Figura 5 del boletín, que no publica tabla: van marcados con ≈. El catastro de proyectos utility combina el informe base con prensa sectorial y comunicaciones de los propietarios (Enel Green Power, Engie, Atlas, Opdenergy, AME/EDF), verificadas en septiembre de 2026; las capacidades pueden estar en MWac o MWp según la fuente.',
+  detalle:r=>{
+    const s=sol(r), p=SOLAR.pais;
+    const micro=[
+      {v:s.centrales!==null?miles(s.centrales):null, e:'centrales ERNC<br>may-2024'},
+      {v:s.pmgd!==null?miles(s.pmgd)+'<span class="u">MW</span>':null, e:'PMGD ≤9 MW<br>mar-2026'},
+      {v:dec(s.nb[0])+'<span class="u">MW</span>', e:'Net Billing<br>'+miles(s.nb[1])+' instal.'}
+    ].map(m=>`<div><b${m.v?'':' class="sd"'}>${m.v||'sin dato'}</b><span>${m.e}</span></div>`).join('');
+
+    const chip=o=>{
+      let c='';
+      if(o.e==='co') c+='<span class="chip constr">En construcción</span>';
+      if(o.e==='rca') c+='<span class="chip rca">RCA aprobada</span>';
+      if(o.e==='pr')  c+='<span class="chip constr">En pruebas</span>';
+      if(o.e==='ev')  c+='<span class="chip rca">En calificación</span>';
+      if(o.b) c+=`<span class="chip bess">BESS ${o.b}</span>`;
+      return c;
+    };
+    const obras = s.obras.length
+      ? `<p class="sub" style="margin-top:16px">Proyectos de escala utility</p>
+         <div class="obras">${s.obras.map(o=>`<div class="obra">
+            <span class="on1">${o.n}${chip(o)}</span>
+            <span class="on2">${miles(o.mw)} MW</span>
+            <span class="on3">${o.c!=='—'?o.c+' · ':''}${o.p!=='—'?o.p+' · ':''}${o.a}</span>
+          </div>`).join('')}</div>`
+      : `<p class="sub" style="margin-top:16px">Generación distribuida</p>
+         <p class="perfil">Sin plantas de escala utility en el catastro. La fotovoltaica regional se sostiene en
+          ${s.pmgd!==null?`<b>${miles(s.pmgd)} MW de PMGD</b> y `:''}<b>${dec(s.nb[0])} MW de Net Billing</b>
+          repartidos en ${miles(s.nb[1])} instalaciones${s.pmgd!==null?'':' de autoconsumo'}.</p>`;
+
+    const rec = s.recorte!==null
+      ? `<p class="perfil" style="margin-top:10px"><b>Vertimiento ≈${miles(s.recorte)} GWh</b> de generación renovable recortada entre enero y junio de 2026.</p>`
+      : '';
+
+    return `
+    <p class="sub">Región ${r.romano} · capital ${r.capital}</p>
+    <h2>${r.nombre}</h2>
+    <div class="granCifra">
+      <b style="color:${SOLOSC}">${miles(s.mw)}</b>
+      <span class="pastilla" style="color:${SOLOSC}">MW · ${dec(s.pct,2)}% país</span>
+    </div>
+    <p class="pieCifra">Capacidad ERNC y almacenamiento instalada · ${SOLAR.corte} · ${rangoSol[r.cod]}.º lugar entre 16 regiones.</p>
+    <p class="perfil">${s.perfil}</p>
+    <div class="micro">${micro}</div>
+    ${rec}
+    ${obras}
+    <p class="nota">${s.nota}</p>`;
+  },
+  inicial:()=>{
+    const g=(...c)=>c.reduce((a,k)=>a+SOLAR.reg[k].mw,0);
+    const tot=Object.values(SOLAR.reg).reduce((a,s)=>a+s.mw,0);
+    const norte=g(15,1,2,3), centro=g(4,5,13,6,7), sur=g(16,8,9,14,10,11,12);
+    return `<p class="sub">Panorama</p>
+    <h2>Elige una región</h2>
+    <p class="vacio">Pasa el cursor por el mapa o por cualquier fila para ver capacidad instalada, generación distribuida y el catastro de proyectos fotovoltaicos de escala utility.</p>
+    <div class="repartos">
+      <div><b style="color:${SOLOSC}">${Math.round(norte/tot*100)}%</b><span>Norte Grande<br>XV · I · II · III</span></div>
+      <div><b>${Math.round(centro/tot*100)}%</b><span>Centro<br>IV · V · RM · VI · VII</span></div>
+      <div><b>${Math.round(sur/tot*100)}%</b><span>Sur y austral<br>XVI a XII</span></div>
+    </div>`;
+  },
+  resumen:()=>{
+    const p=SOLAR.pais;
+    const et=[['En operación',p.fv],['En pruebas',p.pruebas],['En construcción',p.construccion],
+              ['RCA aprobada',p.aprobado],['En calificación',p.calificacion]];
+    const mx=Math.max(...et.map(e=>e[1]));
+    return `<p class="sub">Chile solar · ${SOLAR.corte}</p>
+    <div class="granCifra">
+      <b style="color:${SOLOSC}">${miles(p.fv)}</b>
+      <span class="pastilla" style="color:${SOLOSC}">MW · ${dec(p.pctMatriz)}% matriz</span>
+    </div>
+    <p class="pieCifra">Solar fotovoltaica en operación, potencia neta. Más ${p.termo} MW termosolares.</p>
+    ${chispaMW(p.serie)}
+    <p class="sub" style="margin-top:10px">2013 → 2026 · de ${p.serie[0][1]} a ${miles(p.fv)} MW</p>
+    <p class="sub" style="margin-top:16px">Pipeline solar FV</p>
+    ${et.map(([n,v])=>`<div class="tuberia">
+        <span>${n}</span><span>${miles(v)} MW</span>
+        <div class="pista"><i style="width:${v/mx*100}%;background:${SOL}"></i></div>
+      </div>`).join('')}
+    <p class="nota">El almacenamiento híbrido asociado a plantas solares suma <b>${miles(p.bessSolarMw)} MW / ${miles(p.bessSolarMwh)} MWh</b> en operación y otros ${miles(p.bessConstrMw)} MW en construcción. La generación distribuida aporta ${miles(p.pmgd)} MW de PMGD y ${miles(p.nbMw)} MW de Net Billing en ${miles(p.nbInst)} instalaciones. En lo que va de 2026 se han recortado ${miles(p.recorteYTD)} GWh renovables.</p>`;
+  }
+}
+};
+
+/* ============================================================
+   CONSTRUCCIÓN DEL SVG
+   ============================================================ */
+svg.setAttribute('viewBox',`0 0 ${VW} ${VH}`);
+const capaRejilla=el('g'), capaGuias=el('g'), capaMapa=el('g',{transform:`translate(${MX},${MY})`}),
+      capaFilas=el('g'), capaGolpes=el('g');
+svg.append(capaRejilla,capaGuias,capaMapa,capaFilas,capaGolpes);
+
+const R={};   // referencias por código de región
+DATA.regiones.forEach((r,i)=>{
+  const g=el('path',{d:r.d,class:'region','data-cod':r.cod});
+  capaMapa.append(g);
+
+  const guia=el('path',{class:'guia','data-cod':r.cod});
+  capaGuias.append(guia);
+
+  const fila=el('g',{class:'fila'});
+  const fondo=el('rect',{x:FX-6,y:0,width:FW+6,height:FH,class:'fondoFila'});
+  const rom=el('text',{x:FX,y:24,class:'rom'}); rom.textContent=r.romano;
+  const nom=el('text',{x:FX+38,y:25,class:'nom'}); nom.textContent=r.nombre;
+  const barra=el('rect',{y:33,height:11,class:'barra'});
+  const cifra=el('text',{y:43,class:'cifra'});
+  fila.append(fondo,rom,nom,barra,cifra);
+  capaFilas.append(fila);
+
+  const golpe=el('rect',{x:FX-6,y:0,width:FW+6,height:FH,class:'golpe',tabindex:0,role:'button'});
+  const gg=el('g'); gg.append(golpe); capaGolpes.append(gg);
+
+  R[r.cod]={r,region:g,guia,fila,fondo,rom,nom,barra,cifra,golpe:gg,foco:golpe,pos:i};
+  g.addEventListener('pointerenter',()=>marcar(r.cod));
+  golpe.addEventListener('pointerenter',()=>marcar(r.cod));
+  golpe.addEventListener('focus',()=>marcar(r.cod));
+});
+svg.addEventListener('pointerleave',()=>marcar(null));
+svg.addEventListener('pointerover',ev=>{ if(!ev.target.closest('.region,.golpe')) marcar(null); });
+
+/* ---------- posicionamiento de filas y guías ---------- */
+function trazoGuia(r,y){
+  const x1=MX+r.cx, y1=MY+r.cy, x2=FX-10;
+  return `M${x1} ${y1}C${x1+46} ${y1},${x2-52} ${y},${x2} ${y}`;
+}
+function colocar(mapa){   // mapa: cod -> índice de fila
+  DATA.regiones.forEach(r=>{
+    const y=FY+mapa[r.cod]*FH, o=R[r.cod];
+    o.fila.setAttribute('transform',`translate(0,${y})`);
+    o.golpe.setAttribute('transform',`translate(0,${y})`);
+    o.guia.setAttribute('d',trazoGuia(r,y+FH/2));
+  });
+}
+const ordenGeo={}; DATA.regiones.forEach((r,i)=>ordenGeo[r.cod]=i);
+const ordenValor={};
+for(const k in VISTAS){
+  const m={};
+  [...DATA.regiones].sort((a,b)=>VISTAS[k].valor(b)-VISTAS[k].valor(a)).forEach((r,i)=>m[r.cod]=i);
+  ordenValor[k]=m;
+}
+let actual={...ordenGeo};
+colocar(actual);
+
+function transitar(destino){
+  if(suave){actual={...destino};colocar(actual);return;}
+  const ini={...actual}, t0=performance.now(), dur=520;
+  const paso=t=>{
+    const k=Math.min((t-t0)/dur,1), e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2, m={};
+    DATA.regiones.forEach(r=>m[r.cod]=ini[r.cod]+(destino[r.cod]-ini[r.cod])*e);
+    colocar(m);
+    if(k<1) requestAnimationFrame(paso); else actual={...destino};
+  };
+  requestAnimationFrame(paso);
+}
+
+/* ============================================================
+   CAMBIO DE VISTA
+   ============================================================ */
+let V='global';                 // vista activa
+let porValor=false;             // orden actual: geográfico o por valor
+
+function pintarRejilla(v){
+  while(capaRejilla.firstChild) capaRejilla.removeChild(capaRejilla.firstChild);
+  v.ticks.forEach(t=>{
+    const x=v.tickX(t);
+    capaRejilla.append(el('line',{x1:x,y1:FY,x2:x,y2:FY+16*FH,class:v.tickCero(t)?'cero':'rejilla'}));
+    const e=el('text',{x:x,y:16,'text-anchor':'middle',class:'eje'});
+    e.textContent=v.tickTxt(t); capaRejilla.append(e);
+  });
+  const rot=el('text',{x:FX,y:16,class:'eje'});
+  rot.textContent=v.ejeRot; capaRejilla.append(rot);
+}
+
+function pintarFilas(v){
+  DATA.regiones.forEach(r=>{
+    const o=R[r.cod], b=v.barra(r);
+    o.region.setAttribute('fill',v.mapaFill(r));
+    o.barra.setAttribute('x',b.x); o.barra.setAttribute('width',b.w);
+    o.barra.setAttribute('fill',b.fill);
+    o.cifra.setAttribute('x',b.tx); o.cifra.setAttribute('text-anchor',b.anc);
+    o.cifra.setAttribute('fill',b.col); o.cifra.textContent=b.txt;
+    o.foco.setAttribute('aria-label',v.etiqueta(r));
+  });
+}
+
+const cab={rotulo:document.getElementById('mRotulo'), h1:document.getElementById('mH1'),
+           bajada:document.getElementById('mBajada'), meta:document.getElementById('mMeta'),
+           escala:document.getElementById('mEscala'), pie:document.getElementById('mPie'),
+           orden2:document.getElementById('bVar'), grupoOrden:document.getElementById('mOrden')};
+
+function aplicarVista(nombre){
+  V=nombre;
+  const v=VISTAS[V];
+  document.body.classList.toggle('vSolar',V==='solar');
+  document.title=v.titulo;
+  cab.rotulo.textContent=v.rotulo;
+  cab.h1.innerHTML=v.h1;
+  cab.bajada.textContent=v.bajada;
+  cab.meta.innerHTML=v.meta();
+  cab.escala.innerHTML=v.escala;
+  cab.pie.innerHTML=v.pie;
+  cab.orden2.textContent=v.orden2;
+  cab.grupoOrden.setAttribute('aria-label',v.ordenAria);
+  svg.setAttribute('aria-label',v.aria);
+  pintarRejilla(v);
+  pintarFilas(v);
+  if(porValor) transitar(ordenValor[V]);
+  activo=null;
+  svg.classList.remove('hay');
+  for(const k in R){
+    const o=R[k];
+    [o.region,o.guia,o.fondo,o.barra,o.nom,o.cifra,o.rom].forEach(n=>n.classList.remove('on'));
+  }
+  detalle.innerHTML=v.inicial();
+  resumen.innerHTML=v.resumen();
+}
+
+const tGlobal=document.getElementById('tGlobal'), tSolar=document.getElementById('tSolar');
+function elegirPestana(nombre){
+  if(nombre===V) return;
+  tGlobal.setAttribute('aria-selected',String(nombre==='global'));
+  tSolar.setAttribute('aria-selected',String(nombre==='solar'));
+  aplicarVista(nombre);
+}
+tGlobal.onclick=()=>elegirPestana('global');
+tSolar.onclick=()=>elegirPestana('solar');
+[tGlobal,tSolar].forEach((b,i,a)=>b.addEventListener('keydown',ev=>{
+  if(ev.key!=='ArrowRight'&&ev.key!=='ArrowLeft') return;
+  ev.preventDefault();
+  const n=a[(i+(ev.key==='ArrowRight'?1:a.length-1))%a.length];
+  n.focus(); n.click();
+}));
+
+const bGeo=document.getElementById('bGeo'), bVar=document.getElementById('bVar');
+bGeo.onclick=()=>{porValor=false;bGeo.setAttribute('aria-pressed','true');bVar.setAttribute('aria-pressed','false');transitar(ordenGeo);};
+bVar.onclick=()=>{porValor=true;bVar.setAttribute('aria-pressed','true');bGeo.setAttribute('aria-pressed','false');transitar(ordenValor[V]);};
+
+/* ---------- resaltado ---------- */
+let activo=null;
+function marcar(cod){
+  if(cod===activo) return;
+  activo=cod;
+  svg.classList.toggle('hay',cod!==null);
+  for(const k in R){
+    const o=R[k], on=(+k===cod);
+    [o.region,o.guia,o.fondo,o.barra,o.nom,o.cifra,o.rom].forEach(n=>n.classList.toggle('on',on));
+  }
+  if(cod===null) return;
+  detalle.innerHTML=VISTAS[V].detalle(R[cod].r);
+}
+
+/* ---------- sparklines ---------- */
+function chispa(serie){                 // serie divergente centrada en cero
+  const w=300,h=78,p=8;
+  const mx=Math.max(...serie.map(Math.abs),1.5);
+  const X=i=>p+i*(w-2*p)/(serie.length-1);
+  const Y=v=>h/2-(v/mx)*(h/2-p);
+  const pts=serie.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const area=`${X(0)},${Y(0)} ${pts} ${X(serie.length-1)},${Y(0)}`;
+  const ult=serie[serie.length-1];
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="${area}" fill="${tinte(ult)}" fill-opacity=".12"/>
+    <line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="#C7D1D7" stroke-width="1"/>
+    <polyline points="${pts}" fill="none" stroke="${tinte(ult)}" stroke-width="2"
+      stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${X(serie.length-1)}" cy="${Y(ult)}" r="3.4" fill="${tinte(ult)}"/>
+  </svg>`;
+}
+function chispaMW(pares){               // serie acumulativa desde cero
+  const w=300,h=78,p=8;
+  const mx=Math.max(...pares.map(x=>x[1]));
+  const X=i=>p+i*(w-2*p)/(pares.length-1);
+  const Y=v=>h-p-(v/mx)*(h-2*p);
+  const pts=pares.map((x,i)=>`${X(i).toFixed(1)},${Y(x[1]).toFixed(1)}`).join(' ');
+  const area=`${X(0)},${h-p} ${pts} ${X(pares.length-1)},${h-p}`;
+  const ult=pares[pares.length-1][1];
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="${area}" fill="${SOL}" fill-opacity=".16"/>
+    <line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="#C7D1D7" stroke-width="1"/>
+    <polyline points="${pts}" fill="none" stroke="${SOL}" stroke-width="2"
+      stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${X(pares.length-1)}" cy="${Y(ult)}" r="3.4" fill="${SOL}"/>
+  </svg>`;
+}
+
+aplicarVista('global');
+</script>
+</body>
+</html>
