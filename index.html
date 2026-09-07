@@ -179,6 +179,18 @@ body.vDatos .obra .on2{color:#1C3A57}
 .chip.nueva{color:#2E5E8E}
 .chip.amp{color:var(--tenue)}
 .chip.mw{color:var(--sol)}
+/* etapa del ciclo de vida: sólida para lo que ya existe, tenue para lo que no */
+.chip.fin{color:#0B6E6B;background:rgba(11,110,107,.10);font-weight:600}
+.chip.obr{color:#8A4A11;background:rgba(190,116,24,.12);font-weight:600}
+.chip.ing{color:#2E5E8E}
+.chip.est{color:var(--tenue);border-style:dashed}
+.chip.nd{color:#A9B4BB;border-style:dotted}
+.leyEtapa{display:grid;grid-template-columns:9px 1fr auto;gap:5px 8px;align-items:baseline;
+  margin-top:9px;font-size:12.5px}
+.leyEtapa i{width:9px;height:9px;border-radius:1px;align-self:center}
+.leyEtapa b{font-family:var(--mono);font-size:11.5px;font-weight:600;white-space:nowrap}
+.fuente{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--tenue);
+  margin:10px 0 0;padding-top:9px;border-top:1px solid var(--linea);line-height:1.6}
 .restoObras{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--tenue);
   margin:9px 0 0;padding-top:9px;border-top:1px dotted var(--linea)}
 
@@ -230,6 +242,7 @@ body.vDatos .obra .on2{color:#1C3A57}
   <aside class="panel">
     <section class="tarjeta" id="detalle" aria-live="polite"></section>
     <section class="tarjeta" id="resumen"></section>
+    <section class="tarjeta" id="extra" hidden></section>
   </aside>
 </main>
 
@@ -414,172 +427,218 @@ const DC = {
   pais:{
     inv:8526.3, n:79, mw:863.3, nmw:41, ops:19, comunas:17, regiones:6, tardio:65,
     tipos:[['Obra nueva · grassroot',38,5654.0],['Ampliación de planta',34,2497.3],['Adición de equipamiento',4,336.0],['Otros · brownfield y transmisión',3,39.0]],
+    etapas:[['fin','Terminado o en comisionamiento',5,457.4],['obr','En construcción',7,311.9],['ing','Compras, permisos e ingeniería',22,1540.5],['est','Estudio previo',38,5628.0],['nd','Sin etapa declarada',7,588.5]],
     top:[['GR Huina',2100.0],['Ascenty (Digital Realty)',1270.0],['Scala Data Centers',989.0],['TECfusions',800.0],['Amazon Web Services',780.0]],
     serie:[[2018,5.0],[2019,210.0],[2020,10.0],[2021,57.0],[2022,396.5],[2023,162.0],[2024,253.4],[2025,439.5],[2026,1178.4],[2027,1260.5],[2028,1962.0],[2029,1530.4],[2030,956.6],[2031,40.0]]
   },
   reg:{
     15:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'No aparece en el catastro. La demanda de cómputo sigue anclada al eje Santiago–Valparaíso, a más de 2.000 km de aquí.',
        obras:[]},
     1:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos en el catastro. El tamaño de la red local y la distancia a los puntos de intercambio de tráfico dejan a la región fuera del mapa.',
        obras:[]},
     2:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada, pese a ser la mayor región eléctrica renovable del país.',
        nota:'Concentra el 36% de la capacidad ERNC de Chile —7.596 MW— y el mayor vertimiento nacional, pero no registra un solo proyecto de data center. La carga de cómputo no ha seguido al recurso energético.',
        obras:[]},
     3:{inv:600.0, n:1, mw:80, nmw:1, comunas:1,
+       etapas:{est:[1,600.0]},
        ops:[['Zelestra',600.0]],
        perfil:'Una sola operación, pero la segunda mayor del país: el hiperescala de Zelestra en el desierto de Atacama.',
        nota:'US$ 600 millones y 80 MW en Tierra Amarilla, con arranque previsto en septiembre de 2028. Es el primer intento de acercar la carga de cómputo al lugar donde se concentra el recurso solar: la región tiene 4.036 MW de ERNC instalada y vertió unos 775 GWh en el primer semestre de 2026.',
        obras:[
-         {n:'Tierra Amarilla (Desierto de Atacama) Grassroot Data Center', c:'Tierra Amarilla', p:'Zelestra', i:600.0, mw:80, a:'sep-2028', e:'gr'}]},
+         {n:'Tierra Amarilla (Desierto de Atacama) Grassroot Data Center', c:'Tierra Amarilla', p:'Zelestra', i:600.0, mw:80, a:'sep-2028', e:'gr', s:'dp'}]},
     4:{inv:5.0, n:1, mw:0, nmw:0, comunas:1,
+       etapas:{obr:[1,5.0]},
        ops:[['AURA (observatorios)',5.0]],
        perfil:'Único proyecto de la región: el centro de datos astronómicos de AURA en La Serena.',
        nota:'US$ 5 millones (2018) para procesar y almacenar la producción de los observatorios del Norte Chico. Es el proyecto más antiguo del catastro y el único que no responde a demanda comercial de cómputo.',
        obras:[
-         {n:'La Serena (Colina El Pino) Grassroot Data Center', c:'La Serena', p:'AURA (observatorios)', i:5.0, a:'jun-2018', e:'gr'}]},
+         {n:'La Serena (Colina El Pino) Grassroot Data Center', c:'La Serena', p:'AURA (observatorios)', i:5.0, a:'jun-2018', e:'gr', s:'cn'}]},
     5:{inv:122.0, n:4, mw:30, nmw:4, comunas:1,
+       etapas:{ing:[3,107.5],nd:[1,14.5]},
        ops:[['Scala Data Centers',122.0]],
        perfil:'Cuatro fases de un mismo campus de Scala Data Centers en la ciudad de Valparaíso.',
        nota:'CUR01 a CUR04 suman US$ 122 millones y 30 MW declarados entre 2022 y 2027. Junto a la Metropolitana, es la única región con un campus de fases sucesivas en lugar de una instalación aislada.',
        obras:[
-         {n:'Valparaíso Grassroot Data Center SSCLCR02 Phase II', c:'Valparaíso', p:'Scala Data Centers', i:75.0, mw:10, a:'jun-2026', e:'gr'},
-         {n:'Valparaíso Grassroot Data Center (CUR03) Phase III', c:'Valparaíso', p:'Scala Data Centers', i:18.0, mw:10, a:'mar-2026', e:'gr'},
-         {n:'Valparaíso Grassroot Data Center (CUR01) Phase I', c:'Valparaíso', p:'Scala Data Centers', i:14.5, mw:5, a:'sep-2022', e:'gr'},
-         {n:'Valparaíso Grassroot Data Center (CUR04) Phase IV', c:'Valparaíso', p:'Scala Data Centers', i:14.5, mw:5, a:'jun-2027', e:'gr'}]},
+         {n:'Valparaíso Grassroot Data Center SSCLCR02 Phase II', c:'Valparaíso', p:'Scala Data Centers', i:75.0, mw:10, a:'jun-2026', e:'gr', s:'pl'},
+         {n:'Valparaíso Grassroot Data Center (CUR03) Phase III', c:'Valparaíso', p:'Scala Data Centers', i:18.0, mw:10, a:'mar-2026', e:'gr', s:'pe'},
+         {n:'Valparaíso Grassroot Data Center (CUR01) Phase I', c:'Valparaíso', p:'Scala Data Centers', i:14.5, mw:5, a:'sep-2022', e:'gr', s:'nd'},
+         {n:'Valparaíso Grassroot Data Center (CUR04) Phase IV', c:'Valparaíso', p:'Scala Data Centers', i:14.5, mw:5, a:'jun-2027', e:'gr', s:'pe'}]},
     13:{inv:7775.3, n:71, mw:753.3, nmw:36, comunas:12,
+       etapas:{fin:[5,457.4],obr:[6,306.9],ing:[18,1429.0],est:[36,5008.0],nd:[6,574.0]},
        ops:[['GR Huina',2100.0],['Ascenty (Digital Realty)',1270.0],['Scala Data Centers',867.0],['TECfusions',800.0],['Amazon Web Services',780.0],['EdgeConneX',575.0],['DC Terranova',436.0],['Google',340.0],['Odata (Aligned)',304.3],['Cirion Technologies',152.0],['Equinix',125.0],['Huawei',10.0],['Alibaba Cloud',10.0],['Axxa Group',4.0],['Microsoft',2.0]],
        perfil:'Concentra casi toda la cartera del país: 71 de los 79 proyectos y el 91% de la inversión anunciada.',
        nota:'Doce comunas del Gran Santiago absorben la totalidad de la cartera regional. Quilicura (12 proyectos), Buin, Huechuraba y Lampa (10 cada una) forman el eje del clúster. El campus de Alto Jahuel de GR Huina —cuatro edificios, 300 MW y US$ 2.100 millones— es la mayor apuesta individual del catastro.',
        obras:[
-         {n:'Buin (Alto Jahuel) Grassroot Data Center (South IV)', c:'Buin', p:'GR Huina', i:700.0, mw:100, a:'jul-2030', e:'gr'},
-         {n:'Buin (Alto Jahuel) Grassroot Data Center (South I)', c:'Buin', p:'GR Huina', i:560.0, mw:80, a:'jun-2028', e:'gr'},
-         {n:'Buin (Alto Jahuel) Grassroot Data Center (South II)', c:'Buin', p:'GR Huina', i:420.0, mw:60, a:'jun-2029', e:'gr'},
-         {n:'Buin (Alto Jahuel) Grassroot Data Center (South III)', c:'Buin', p:'GR Huina', i:420.0, mw:60, a:'jun-2029', e:'gr'},
-         {n:'Puente Alto Data Center Expansion Phase II', c:'Puente Alto', p:'TECfusions', i:360.0, mw:45, a:'oct-2028', e:'ex'},
-         {n:'Puente Alto Data Center Expansion Phase III', c:'Puente Alto', p:'TECfusions', i:360.0, mw:45, a:'jul-2029', e:'ex'},
-         {n:'Quilicura Grassroot Data Center SCL04 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:330.0, mw:50, a:'oct-2026', e:'gr'},
-         {n:'Quilicura Grassroot Data Center SCL05 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:330.0, mw:50, a:'may-2027', e:'gr'},
-         {n:'San Bernardo Grassroot Data Center EDCSCL11', c:'San Bernardo', p:'EdgeConneX', i:250.0, a:'feb-2022', e:'gr'},
-         {n:'Colina Grassroot Data Center SCL04', c:'Colina', p:'EdgeConneX', i:230.0, mw:33, a:'abr-2027', e:'gr'},
-         {n:'Lampa Grassroot Data Center SSCLLP03 Phase II', c:'Lampa', p:'Scala Data Centers', i:225.0, a:'sep-2026', e:'gr'},
-         {n:'Quilicura Data Center SCL04 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:165.0, mw:25, a:'nov-2027', e:'ex'},
-         {n:'Quilicura Data Center SCL05 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:165.0, mw:25, a:'jun-2028', e:'ex'},
-         {n:'Quilicura Grassroot Data Center 1', c:'Quilicura', p:'Google', i:140.0, a:'oct-2019', e:'gr'},
-         {n:'Quilicura Grassroot Data Center · Data Hall', c:'Quilicura', p:'Ascenty (Digital Realty)', i:140.0, mw:16, a:'jul-2026', e:'gr'},
-         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase I', c:'Buin', p:'DC Terranova', i:134.4, mw:19.2, a:'mar-2029', e:'eq'},
-         {n:'Padre Hurtado Grassroot Data Center Phase I', c:'Padre Hurtado', p:'Amazon Web Services', i:126.0, a:'abr-2024', e:'gr'},
-         {n:'Padre Hurtado Data Center Expansion Phase II', c:'Padre Hurtado', p:'Amazon Web Services', i:126.0, a:'sep-2025', e:'ex'},
-         {n:'Lampa Grassroot SSCLLP02 Data Center', c:'Lampa', p:'Scala Data Centers', i:126.0, mw:18, a:'dic-2025', e:'gr'},
-         {n:'Padre Hurtado Data Center Expansion Phase III', c:'Padre Hurtado', p:'Amazon Web Services', i:108.0, a:'dic-2027', e:'ex'},
-         {n:'Puente Alto Grassroot Data Center Phase I', c:'Puente Alto', p:'Amazon Web Services', i:100.0, a:'nov-2023', e:'gr'},
-         {n:'Huechuraba Grassroot Data Center Campus Phase I', c:'Huechuraba', p:'Amazon Web Services', i:100.0, a:'feb-2026', e:'gr'},
-         {n:'Quilicura Data Center Expansion Phase II SAN2', c:'Quilicura', p:'Cirion Technologies', i:100.0, mw:10, a:'ago-2026', e:'ex'},
-         {n:'Cerrillos Grassroot Data Center DC01 Phase I', c:'Cerrillos', p:'Google', i:100.0, a:'ene-2027', e:'gr'},
-         {n:'Cerrillos Grassroot Data Center DC02 Phase II', c:'Cerrillos', p:'Google', i:100.0, a:'ene-2027', e:'gr'},
-         {n:'Puente Alto Grassroot Data Center Phase I', c:'Puente Alto', p:'TECfusions', i:80.0, mw:10, a:'sep-2027', e:'gr'},
-         {n:'Quilicura Grassroot Data Center', c:'Quilicura', p:'Ascenty (Digital Realty)', i:70.0, a:'jun-2019', e:'gr'},
-         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase II', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq'},
-         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase III', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq'},
-         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase IV', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq'},
-         {n:'Huechuraba Data Center Campus Expansion Phase III', c:'Huechuraba', p:'Amazon Web Services', i:65.0, a:'dic-2037', e:'ex'},
-         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase II', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'ene-2025', e:'ex'},
-         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase III', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'oct-2025', e:'ex'},
-         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase IV', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'oct-2025', e:'ex'},
-         {n:'Puente Alto Data Center Expansion Phase III', c:'Puente Alto', p:'Amazon Web Services', i:55.0, a:'mar-2030', e:'ex'},
-         {n:'Quilicura Data Center Expansion Phase III (SAN2)', c:'Quilicura', p:'Cirion Technologies', i:50.0, a:'nov-2026', e:'ex'},
-         {n:'Colina Grassroot Data Center SCL03', c:'Colina', p:'EdgeConneX', i:50.0, mw:7, a:'abr-2027', e:'gr'},
-         {n:'Las Condes Grassroot Data Center Phase I', c:'Buin', p:'DC Terranova', i:50.0, a:'mar-2028', e:'gr'},
-         {n:'Puente Alto Data Center Expansion Phase II', c:'Puente Alto', p:'Amazon Web Services', i:50.0, a:'ene-2029', e:'ex'},
-         {n:'Las Condes Data Center Expansion Phase II', c:'Buin', p:'DC Terranova', i:50.0, a:'mar-2029', e:'ex'},
-         {n:'Lampa Grassroot SSCLLP01 Data Center Phase I', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'may-2023', e:'gr'},
-         {n:'Huechuraba Grassroot Data Center SSCLHB02 Phase I', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ago-2024', e:'gr'},
-         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase II', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'nov-2026', e:'ex'},
-         {n:'Lampa Data Center SSCLLP01 Expansion Phase II', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jun-2027', e:'ex'},
-         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase III', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2028', e:'ex'},
-         {n:'Lampa Data Center SSCLLP01 Expansion Phase III', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2028', e:'ex'},
-         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase IV', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jul-2028', e:'ex'},
-         {n:'Lampa Data Center SSCLLP01 Expansion Phase IV', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jul-2028', e:'ex'},
-         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase V', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2029', e:'ex'},
-         {n:'Lampa Data Center SSCLLP01 Expansion Phase V', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'feb-2029', e:'ex'},
-         {n:'Lampa Data Center ST01 2B Expansion Phase IV', c:'Lampa', p:'Odata (Aligned)', i:43.4, mw:6, a:'oct-2024', e:'ex'},
-         {n:'Lampa Data Center ST01-2C Expansion Phase V', c:'Lampa', p:'Odata (Aligned)', i:43.4, mw:6, a:'may-2026', e:'ex'},
-         {n:'Huechuraba Data Center Campus Expansion Phase II', c:'Huechuraba', p:'Amazon Web Services', i:40.0, a:'feb-2031', e:'ex'},
-         {n:'Huechuraba Grassroot Data Center SSCLHB01', c:'Huechuraba', p:'Scala Data Centers', i:36.0, mw:4.8, a:'ago-2024', e:'gr'},
-         {n:'Santiago Grassroot (DH1) Data Center No. 2 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:35.0, a:'jun-2021', e:'gr'},
-         {n:'Santiago (DH2 & DH3) Data Center No. 2 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:35.0, a:'feb-2022', e:'ex'},
-         {n:'Colina Brownfield Data Center (SCL02)', c:'Colina', p:'EdgeConneX', i:35.0, a:'oct-2022', e:'br'},
-         {n:'Pudahuel Grassroot ST5 Data Center Phase I', c:'Pudahuel', p:'Equinix', i:35.0, mw:3.5, a:'mar-2026', e:'gr'},
-         {n:'Pudahuel ST5 Data Center Expansion Phase III', c:'Pudahuel', p:'Equinix', i:35.0, a:'dic-2027', e:'ex'},
-         {n:'Pudahuel ST5 Data Center Expansion Phase IV', c:'Pudahuel', p:'Equinix', i:35.0, a:'sep-2028', e:'ex'},
-         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Odata (Aligned)', i:30.0, a:'ene-2022', e:'gr'},
-         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Huawei', i:10.0, a:'jul-2020', e:'gr'},
-         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Alibaba Cloud', i:10.0, a:'mar-2021', e:'gr'},
-         {n:'Colina Data Center SCL02 Warehouses Addition', c:'Colina', p:'EdgeConneX', i:10.0, a:'oct-2022', e:'ex'},
-         {n:'Puente Alto Data Center Electric Substation Addition Phase I', c:'Puente Alto', p:'Amazon Web Services', i:10.0, a:'nov-2023', e:'ex'},
-         {n:'Pudahuel ST5 Data Center Expansion Phase II', c:'Pudahuel', p:'Equinix', i:10.0, mw:1, a:'dic-2026', e:'ex'},
-         {n:'Macul Pedro de Valdivia Data Center Expansion', c:'Macul', p:'Equinix', i:5.0, a:'mar-2021', e:'ex'},
-         {n:'Santiago (Amunátegui) Data Center Expansion', c:'Santiago', p:'Equinix', i:5.0, a:'mar-2021', e:'ex'},
-         {n:'Lampa Grassroot Data Center', c:'Lampa', p:'Axxa Group', i:4.0, mw:2, a:'oct-2023', e:'gr'},
-         {n:'Huechuraba CenturyLink Data Center Modernization', c:'Huechuraba', p:'Cirion Technologies', i:2.0, a:'ene-2021', e:'up'},
-         {n:'Quilicura Data Center SCL03 Substation and Transmission Line Addition Phase I', c:'Quilicura', p:'Microsoft', i:2.0, a:'oct-2022', e:'tr'}]},
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South IV)', c:'Buin', p:'GR Huina', i:700.0, mw:100, a:'jul-2030', e:'gr', s:'ju'},
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South I)', c:'Buin', p:'GR Huina', i:560.0, mw:80, a:'jun-2028', e:'gr', s:'ju'},
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South II)', c:'Buin', p:'GR Huina', i:420.0, mw:60, a:'jun-2029', e:'gr', s:'ju'},
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South III)', c:'Buin', p:'GR Huina', i:420.0, mw:60, a:'jun-2029', e:'gr', s:'ju'},
+         {n:'Puente Alto Data Center Expansion Phase II', c:'Puente Alto', p:'TECfusions', i:360.0, mw:45, a:'oct-2028', e:'ex', s:'al'},
+         {n:'Puente Alto Data Center Expansion Phase III', c:'Puente Alto', p:'TECfusions', i:360.0, mw:45, a:'jul-2029', e:'ex', s:'al'},
+         {n:'Quilicura Grassroot Data Center SCL04 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:330.0, mw:50, a:'oct-2026', e:'gr', s:'pu'},
+         {n:'Quilicura Grassroot Data Center SCL05 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:330.0, mw:50, a:'may-2027', e:'gr', s:'ju'},
+         {n:'San Bernardo Grassroot Data Center EDCSCL11', c:'San Bernardo', p:'EdgeConneX', i:250.0, a:'feb-2022', e:'gr', s:'pe'},
+         {n:'Colina Grassroot Data Center SCL04', c:'Colina', p:'EdgeConneX', i:230.0, mw:33, a:'abr-2027', e:'gr', s:'nd'},
+         {n:'Lampa Grassroot Data Center SSCLLP03 Phase II', c:'Lampa', p:'Scala Data Centers', i:225.0, a:'sep-2026', e:'gr', s:'pl'},
+         {n:'Quilicura Data Center SCL04 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:165.0, mw:25, a:'nov-2027', e:'ex', s:'pu'},
+         {n:'Quilicura Data Center SCL05 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:165.0, mw:25, a:'jun-2028', e:'ex', s:'ju'},
+         {n:'Quilicura Grassroot Data Center 1', c:'Quilicura', p:'Google', i:140.0, a:'oct-2019', e:'gr', s:'nd'},
+         {n:'Quilicura Grassroot Data Center · Data Hall', c:'Quilicura', p:'Ascenty (Digital Realty)', i:140.0, mw:16, a:'jul-2026', e:'gr', s:'ca'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase I', c:'Buin', p:'DC Terranova', i:134.4, mw:19.2, a:'mar-2029', e:'eq', s:'ju'},
+         {n:'Padre Hurtado Grassroot Data Center Phase I', c:'Padre Hurtado', p:'Amazon Web Services', i:126.0, a:'abr-2024', e:'gr', s:'fc'},
+         {n:'Padre Hurtado Data Center Expansion Phase II', c:'Padre Hurtado', p:'Amazon Web Services', i:126.0, a:'sep-2025', e:'ex', s:'fc'},
+         {n:'Lampa Grassroot SSCLLP02 Data Center', c:'Lampa', p:'Scala Data Centers', i:126.0, mw:18, a:'dic-2025', e:'gr', s:'fc'},
+         {n:'Padre Hurtado Data Center Expansion Phase III', c:'Padre Hurtado', p:'Amazon Web Services', i:108.0, a:'dic-2027', e:'ex', s:'al'},
+         {n:'Puente Alto Grassroot Data Center Phase I', c:'Puente Alto', p:'Amazon Web Services', i:100.0, a:'nov-2023', e:'gr', s:'pe'},
+         {n:'Huechuraba Grassroot Data Center Campus Phase I', c:'Huechuraba', p:'Amazon Web Services', i:100.0, a:'feb-2026', e:'gr', s:'nd'},
+         {n:'Quilicura Data Center Expansion Phase II SAN2', c:'Quilicura', p:'Cirion Technologies', i:100.0, mw:10, a:'ago-2026', e:'ex', s:'pi'},
+         {n:'Cerrillos Grassroot Data Center DC01 Phase I', c:'Cerrillos', p:'Google', i:100.0, a:'ene-2027', e:'gr', s:'ju'},
+         {n:'Cerrillos Grassroot Data Center DC02 Phase II', c:'Cerrillos', p:'Google', i:100.0, a:'ene-2027', e:'gr', s:'nd'},
+         {n:'Puente Alto Grassroot Data Center Phase I', c:'Puente Alto', p:'TECfusions', i:80.0, mw:10, a:'sep-2027', e:'gr', s:'ju'},
+         {n:'Quilicura Grassroot Data Center', c:'Quilicura', p:'Ascenty (Digital Realty)', i:70.0, a:'jun-2019', e:'gr', s:'cn'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase II', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq', s:'ju'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase III', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq', s:'ju'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase IV', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq', s:'ju'},
+         {n:'Huechuraba Data Center Campus Expansion Phase III', c:'Huechuraba', p:'Amazon Web Services', i:65.0, a:'dic-2037', e:'ex', s:'pu'},
+         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase II', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'ene-2025', e:'ex', s:'cn'},
+         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase III', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'oct-2025', e:'ex', s:'pi'},
+         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase IV', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'oct-2025', e:'ex', s:'pi'},
+         {n:'Puente Alto Data Center Expansion Phase III', c:'Puente Alto', p:'Amazon Web Services', i:55.0, a:'mar-2030', e:'ex', s:'pe'},
+         {n:'Quilicura Data Center Expansion Phase III (SAN2)', c:'Quilicura', p:'Cirion Technologies', i:50.0, a:'nov-2026', e:'ex', s:'pi'},
+         {n:'Colina Grassroot Data Center SCL03', c:'Colina', p:'EdgeConneX', i:50.0, mw:7, a:'abr-2027', e:'gr', s:'al'},
+         {n:'Las Condes Grassroot Data Center Phase I', c:'Buin', p:'DC Terranova', i:50.0, a:'mar-2028', e:'gr', s:'ju'},
+         {n:'Puente Alto Data Center Expansion Phase II', c:'Puente Alto', p:'Amazon Web Services', i:50.0, a:'ene-2029', e:'ex', s:'pe'},
+         {n:'Las Condes Data Center Expansion Phase II', c:'Buin', p:'DC Terranova', i:50.0, a:'mar-2029', e:'ex', s:'ju'},
+         {n:'Lampa Grassroot SSCLLP01 Data Center Phase I', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'may-2023', e:'gr', s:'cn'},
+         {n:'Huechuraba Grassroot Data Center SSCLHB02 Phase I', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ago-2024', e:'gr', s:'cn'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase II', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'nov-2026', e:'ex', s:'pi'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase II', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jun-2027', e:'ex', s:'pi'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase III', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2028', e:'ex', s:'ju'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase III', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2028', e:'ex', s:'ju'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase IV', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jul-2028', e:'ex', s:'al'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase IV', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jul-2028', e:'ex', s:'ju'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase V', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2029', e:'ex', s:'al'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase V', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'feb-2029', e:'ex', s:'ju'},
+         {n:'Lampa Data Center ST01 2B Expansion Phase IV', c:'Lampa', p:'Odata (Aligned)', i:43.4, mw:6, a:'oct-2024', e:'ex', s:'co'},
+         {n:'Lampa Data Center ST01-2C Expansion Phase V', c:'Lampa', p:'Odata (Aligned)', i:43.4, mw:6, a:'may-2026', e:'ex', s:'cn'},
+         {n:'Huechuraba Data Center Campus Expansion Phase II', c:'Huechuraba', p:'Amazon Web Services', i:40.0, a:'feb-2031', e:'ex', s:'pu'},
+         {n:'Huechuraba Grassroot Data Center SSCLHB01', c:'Huechuraba', p:'Scala Data Centers', i:36.0, mw:4.8, a:'ago-2024', e:'gr', s:'fc'},
+         {n:'Santiago Grassroot (DH1) Data Center No. 2 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:35.0, a:'jun-2021', e:'gr', s:'cn'},
+         {n:'Santiago (DH2 & DH3) Data Center No. 2 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:35.0, a:'feb-2022', e:'ex', s:'pl'},
+         {n:'Colina Brownfield Data Center (SCL02)', c:'Colina', p:'EdgeConneX', i:35.0, a:'oct-2022', e:'br', s:'pe'},
+         {n:'Pudahuel Grassroot ST5 Data Center Phase I', c:'Pudahuel', p:'Equinix', i:35.0, mw:3.5, a:'mar-2026', e:'gr', s:'pu'},
+         {n:'Pudahuel ST5 Data Center Expansion Phase III', c:'Pudahuel', p:'Equinix', i:35.0, a:'dic-2027', e:'ex', s:'al'},
+         {n:'Pudahuel ST5 Data Center Expansion Phase IV', c:'Pudahuel', p:'Equinix', i:35.0, a:'sep-2028', e:'ex', s:'al'},
+         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Odata (Aligned)', i:30.0, a:'ene-2022', e:'gr', s:'ma'},
+         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Huawei', i:10.0, a:'jul-2020', e:'gr', s:'ma'},
+         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Alibaba Cloud', i:10.0, a:'mar-2021', e:'gr', s:'ma'},
+         {n:'Colina Data Center SCL02 Warehouses Addition', c:'Colina', p:'EdgeConneX', i:10.0, a:'oct-2022', e:'ex', s:'pe'},
+         {n:'Puente Alto Data Center Electric Substation Addition Phase I', c:'Puente Alto', p:'Amazon Web Services', i:10.0, a:'nov-2023', e:'ex', s:'pe'},
+         {n:'Pudahuel ST5 Data Center Expansion Phase II', c:'Pudahuel', p:'Equinix', i:10.0, mw:1, a:'dic-2026', e:'ex', s:'pu'},
+         {n:'Macul Pedro de Valdivia Data Center Expansion', c:'Macul', p:'Equinix', i:5.0, a:'mar-2021', e:'ex', s:'pl'},
+         {n:'Santiago (Amunátegui) Data Center Expansion', c:'Santiago', p:'Equinix', i:5.0, a:'mar-2021', e:'ex', s:'pl'},
+         {n:'Lampa Grassroot Data Center', c:'Lampa', p:'Axxa Group', i:4.0, mw:2, a:'oct-2023', e:'gr', s:'pu'},
+         {n:'Huechuraba CenturyLink Data Center Modernization', c:'Huechuraba', p:'Cirion Technologies', i:2.0, a:'ene-2021', e:'up', s:'nd'},
+         {n:'Quilicura Data Center SCL03 Substation and Transmission Line Addition Phase I', c:'Quilicura', p:'Microsoft', i:2.0, a:'oct-2022', e:'tr', s:'nd'}]},
     6:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos, pese a limitar con el eje metropolitano donde se concentra el 91% de la inversión anunciada.',
        obras:[]},
     7:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos en el catastro, aunque su parque ERNC (982 MW) supera al de varias regiones del norte.',
        obras:[]},
     16:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos en el catastro.',
        obras:[]},
     8:{inv:4.0, n:1, mw:0, nmw:0, comunas:1,
+       etapas:{ing:[1,4.0]},
        ops:[['Grupo Energy Service',4.0]],
        perfil:'Un proyecto pequeño en Coronel, asociado al polo industrial y energético local.',
        nota:'US$ 4 millones con arranque en noviembre de 2026. Es la única presencia del catastro al sur del Maule y su alcance no declara capacidad en MW.',
        obras:[
-         {n:'Coronel Quiñenco Grassroot Data Center', c:'Coronel', p:'Grupo Energy Service', i:4.0, a:'nov-2026', e:'gr'}]},
+         {n:'Coronel Quiñenco Grassroot Data Center', c:'Coronel', p:'Grupo Energy Service', i:4.0, a:'nov-2026', e:'gr', s:'dd'}]},
     9:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos en el catastro. Su matriz renovable es mayoritariamente eólica y de biomasa.',
        obras:[]},
     14:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos en el catastro.',
        obras:[]},
     10:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos en el catastro. El data center más austral del país está en Punta Arenas, 1.300 km al sur.',
        obras:[]},
     11:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       etapas:{},
        ops:[],
        perfil:'Sin cartera de data centers registrada.',
        nota:'Sin proyectos en el catastro. La región tampoco está conectada al Sistema Eléctrico Nacional.',
        obras:[]},
     12:{inv:20.0, n:1, mw:0, nmw:0, comunas:1,
+       etapas:{est:[1,20.0]},
        ops:[['Comunicación y Telefonía Rural',20.0]],
        perfil:'Un data center regional de conectividad en Punta Arenas, sin escala hiperescala.',
        nota:'US$ 20 millones con arranque en julio de 2022. Su alcance no declara capacidad en MW: responde a necesidades de conectividad austral más que a demanda de cómputo.',
        obras:[
-         {n:'Punta Arenas Grassroot Data Center', c:'Punta Arenas', p:'Comunicación y Telefonía Rural', i:20.0, a:'jul-2022', e:'gr'}]}
+         {n:'Punta Arenas Grassroot Data Center', c:'Punta Arenas', p:'Comunicación y Telefonía Rural', i:20.0, a:'jul-2022', e:'gr', s:'ju'}]}
   }
 };
 
+
+/* ============================================================
+   CONTRASTE · parque de data centers realmente en operación
+   El catastro IIR es una cartera de proyectos anunciados, no un censo
+   de instalaciones. Estas cifras vienen de fuentes independientes y
+   sirven para dimensionar cuánto de lo anunciado existe hoy.
+   Fuentes:
+   · Colliers, informe de mercado Data Centers (2026): centros en
+     operación y capacidad IT instalada.
+   · CBRE, Global Data Center Trends 2026 (jul-2026): capacidad de
+     colocation y vacancia en Santiago.
+   · GPS Property (dic-2024, vía InvestChile): inversión materializada
+     en la década y cartera comprometida al 2030.
+   · Coordinador Eléctrico Nacional: proyección de demanda de los
+     data centers al 2030.
+   · Marjorie Neto, «Los data centers y la energía en Chile»
+     (DataCenterBoom!, feb-2026): inventario SEIA de la RM con potencia
+     declarada y consumo comunal de Quilicura.
+   ============================================================ */
+const DCREAL = {
+  centros:34, mwIT:235, desarrollos:35,           // Colliers 2026
+  sgoMw:165.8, vacancia:3.3, dispMw:5.4,          // CBRE jul-2026 (solo colocation)
+  rmMw:258.5, rmCentros:37,                       // GPS Property 2S-2025
+  serie:[[2013,35],[2021,89.7],[2024,198],[2025,228]],
+  invHecha:1660, invComprometida:1616,            // GPS Property · Colliers 2026-2031
+  demanda:[[2025,325],[2030,1207]],               // Coordinador Eléctrico Nacional
+  quilicuraPct:79,                                // % del consumo industrial-comercial comunal
+  faltantes:['Claro','SONDA','Entel','GTD','InterNexa','TIVIT','Dataluna']
+};
 
 /* ---------- geometría del lienzo ---------- */
 const VW=780, VH=1040;
@@ -593,6 +652,7 @@ const TOPEDC=8000;                    // tope de escala, US$ MM (vista datacente
 const svg=document.getElementById('vista');
 const detalle=document.getElementById('detalle');
 const resumen=document.getElementById('resumen');
+const extra=document.getElementById('extra');
 const NS='http://www.w3.org/2000/svg';
 const el=(t,a={})=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);return n;};
 const suave=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -624,6 +684,15 @@ const SOL='#BE7418', SOLOSC='#8A4A11';
 const fmt=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1);
 
 const dc=r=>DC.reg[r.cod];
+/* etapa del ciclo de vida IIR: código → [rótulo, bolsa] */
+const ET={co:['Terminado','fin'],            fc:['Comisionamiento','fin'],
+          cn:['En construcción','obr'],      pu:['Compras','ing'],
+          pl:['Planificación','ing'],        pe:['Permisos','ing'],
+          dd:['Ing. de detalle','ing'],      pi:['Ing. preliminar','est'],
+          dp:['Diseño preliminar','est'],    ca:['Aprob. de capital','est'],
+          ju:['Justificación','est'],        al:['Definición de alcance','est'],
+          ma:['Análisis de mercado','est'],  nd:['Sin etapa','nd']};
+const COLET={fin:'#0B6E6B', obr:'#BE7418', ing:'#2E5E8E', est:'#93A2AB', nd:'#C7D1D7'};
 const DCMAX=Math.max(...Object.values(DC.reg).map(d=>d.inv));
 const tonoDC=v=>{                     // secuencial, vista datacenters
   if(!v) return '#EAEDEF';            // gris neutro: región sin cartera
@@ -924,7 +993,7 @@ datacenters:{
   etiqueta:r=>dc(r).n
     ? `${r.nombre}, ${usd(dc(r).inv)} millones de dólares anunciados en ${dc(r).n} proyecto${dc(r).n===1?'':'s'} de data center`
     : `${r.nombre}, sin proyectos de data center en el catastro`,
-  pie:'<b>Sobre los datos.</b> Cartera de proyectos de data center en Chile según el catastro de <b>Industrial Info Resources (IIR)</b>: 79 proyectos, US$ 8.526 millones y fechas de arranque declaradas entre 2018 y 2037. La barra mide la <b>inversión total anunciada</b> (Total Investment Value), no capacidad instalada ni obra ejecutada: mezcla proyectos ya en operación, en construcción y fases futuras que pueden no materializarse, y varias fases de un mismo campus aparecen como registros separados. La <b>capacidad en MW</b> se extrajo del texto de alcance de cada proyecto y solo 41 de los 79 registros declaran una cifra propia, de modo que los totales regionales de MW son un piso, no la capacidad de la región. Los registros marcados «Santiago Metro» se consolidaron en la Región Metropolitana.',
+  pie:'<b>Sobre los datos.</b> Cartera de proyectos de data center en Chile según el catastro de <b>Industrial Info Resources (IIR)</b>: 79 proyectos, US$ 8.526 millones y fechas de arranque declaradas entre 2018 y 2037. La barra mide la <b>inversión total anunciada</b> (Total Investment Value), no capacidad instalada ni obra ejecutada: mezcla proyectos ya en operación, en construcción y fases futuras que pueden no materializarse. <b>«Grassroot»</b> es la etiqueta de IIR para <b>obra nueva</b> levantada desde los cimientos —su alcance dice siempre «construct (1) Data Center Building»—, frente a la ampliación de un activo existente, la adición de equipamiento sobre una cáscara ya terminada o el brownfield, que reconvierte un edificio en pie. No significa terreno virgen: los cuatro edificios grassroot de Alto Jahuel comparten campus. Y las categorías son etapas de un mismo activo, no instalaciones distintas: la cáscara de Buin (US$ 100 MM) y sus cuatro fases de equipamiento (US$ 336 MM) son seis registros de un solo data center. La <b>capacidad en MW</b> se extrajo del texto de alcance de cada proyecto y solo 41 de los 79 registros declaran una cifra propia, de modo que los totales regionales de MW son un piso, no la capacidad de la región. <b>Es una cartera de proyectos, no un censo de instalaciones:</b> omite operadores con parque en operación pero sin proyectos vigentes —Claro, SONDA, Entel, GTD, InterNexa, TIVIT— y su monto supera 2,5 veces la inversión que las consultoras dan por comprometida (US$ 1.660 millones materializados en la década, más US$ 1.616 millones al 2031). La <b>etapa</b> de cada proyecto se dedujo del propio texto de alcance, que declara qué actividad seguía IIR la última vez que tocó el registro; el export no trae fecha de actualización, así que hay fichas desfasadas —La Serena, con arranque en 2018, sigue marcada «en construcción»—. La tercera tarjeta del panel contrasta esta cartera con el parque realmente en operación, con fuentes independientes. Los registros marcados «Santiago Metro» se consolidaron en la Región Metropolitana.',
   detalle:r=>{
     const d=dc(r);
     const micro=[
@@ -937,7 +1006,8 @@ datacenters:{
     const T={gr:['nueva','Obra nueva'], ex:['amp','Ampliación'], eq:['amp','Equipamiento'],
              br:['amp','Brownfield'],   up:['amp','Modernización'], tr:['amp','Transmisión']};
     const chip=o=>{
-      let c=`<span class="chip ${T[o.e][0]}">${T[o.e][1]}</span>`;
+      let c=`<span class="chip ${ET[o.s][1]}">${ET[o.s][0]}</span>`;
+      c+=`<span class="chip ${T[o.e][0]}">${T[o.e][1]}</span>`;
       if(o.mw) c+=`<span class="chip mw">${usd(o.mw)} MW</span>`;
       return c;
     };
@@ -987,8 +1057,9 @@ datacenters:{
     </div>`;
   },
   resumen:()=>{
-    const p=DC.pais, mx=Math.max(...p.tipos.map(t=>t[2]));
+    const p=DC.pais, mx=Math.max(...p.etapas.map(e=>e[3]));
     const cinco=Math.round(p.top.reduce((a,t)=>a+t[1],0)*10)/10;
+    const hecho=p.etapas.filter(e=>e[0]==='fin'||e[0]==='obr').reduce((a,e)=>a+e[3],0);
     return `<p class="sub">Chile · cartera de data centers</p>
     <div class="granCifra">
       <b style="color:${DCOSC}">${miles(p.inv)}</b>
@@ -997,12 +1068,45 @@ datacenters:{
     <p class="pieCifra">Inversión total anunciada por ${p.ops} operadores en ${p.comunas} comunas de ${p.regiones} regiones.</p>
     ${chispaMW(p.serie,DCC)}
     <p class="sub" style="margin-top:10px">${p.serie[0][0]} → ${p.serie[p.serie.length-1][0]} · US$ MM por año de arranque</p>
-    <p class="sub" style="margin-top:16px">Cartera por tipo de proyecto</p>
-    ${p.tipos.map(([n,c,v])=>`<div class="tuberia">
-        <span>${n}</span><span>${miles(v)} MM · ${c}</span>
-        <div class="pista"><i style="width:${v/mx*100}%;background:${DCC}"></i></div>
+    <p class="sub" style="margin-top:16px">Pipeline · etapa declarada en el alcance</p>
+    ${p.etapas.map(([k,n,c,v])=>`<div class="tuberia">
+        <span>${n} · ${c}</span><span>${miles(v)} MM · ${Math.round(v/p.inv*100)}%</span>
+        <div class="pista"><i style="width:${v/mx*100}%;background:${COLET[k]}"></i></div>
       </div>`).join('')}
-    <p class="nota">Los cinco mayores operadores —${p.top.map(t=>t[0]).join(', ')}— reúnen <b>US$ ${miles(cinco)} millones</b>, el ${Math.round(cinco/p.inv*100)}% de la cartera. La curva excluye un proyecto de US$ ${p.tardio} millones cuyo arranque está declarado para 2037.</p>`;
+    <p class="nota">Solo <b>US$ ${miles(hecho)} millones</b> —el ${Math.round(hecho/p.inv*100)}% de la cartera— están construidos o construyéndose; dos tercios siguen en etapas previas a la decisión de inversión. Por tipo de obra, ${p.tipos.map(t=>`${t[0].split(' · ')[0].toLowerCase()} ${miles(t[2])} MM`).join(', ')}. Los cinco mayores operadores —${p.top.map(t=>t[0]).join(', ')}— reúnen US$ ${miles(cinco)} millones, el ${Math.round(cinco/p.inv*100)}%. La curva excluye un proyecto de US$ ${p.tardio} millones cuyo arranque está declarado para 2037.</p>`;
+  },
+  extra:()=>{
+    const D=DCREAL, s=D.serie, dem=D.demanda;
+    const barras=[
+      ['Cartera anunciada · catastro IIR', DC.pais.inv, DCC],
+      ['Comprometida 2026-2031 · Colliers', D.invComprometida, '#93A2AB'],
+      ['Materializada en la década · GPS', D.invHecha, '#93A2AB']
+    ];
+    const mx=Math.max(...barras.map(b=>b[1]));
+    const mxd=Math.max(...dem.map(d=>d[1]));
+    return `<p class="sub">Contraste · lo que ya opera</p>
+    <div class="granCifra">
+      <b>${miles(D.mwIT)}</b>
+      <span class="pastilla">MW IT · ${D.centros} centros</span>
+    </div>
+    <p class="pieCifra">Capacidad instalada y en operación en Chile (Colliers, 2026). Otras mediciones del mismo período van de ${dec(D.sgoMw)} MW —solo colocation en Santiago, CBRE— a ${dec(D.rmMw)} MW en la Región Metropolitana (GPS Property).</p>
+    <div class="micro">
+      <div><b>${dec(D.vacancia)}<span class="u">%</span></b><span>vacancia en Santiago<br>${dec(D.dispMw)} MW libres</span></div>
+      <div><b>${miles(s[0][1])}→${miles(s[s.length-1][1])}<span class="u">MW</span></b><span>capacidad instalada<br>${s[0][0]} → ${s[s.length-1][0]}</span></div>
+      <div><b>${D.desarrollos}</b><span>desarrollos futuros<br>según Colliers</span></div>
+    </div>
+    <p class="sub" style="margin-top:16px">Inversión: anunciada vs. comprometida</p>
+    ${barras.map(([n,v,c])=>`<div class="tuberia">
+        <span>${n}</span><span>${miles(v)} MM</span>
+        <div class="pista"><i style="width:${v/mx*100}%;background:${c}"></i></div>
+      </div>`).join('')}
+    <p class="sub" style="margin-top:16px">Demanda eléctrica de los data centers</p>
+    ${dem.map(([a,v])=>`<div class="tuberia">
+        <span>${a}${a===dem[dem.length-1][0]?' · proyección':''}</span><span>${miles(v)} MW</span>
+        <div class="pista"><i style="width:${v/mxd*100}%;background:${SOL}"></i></div>
+      </div>`).join('')}
+    <p class="nota">El Coordinador Eléctrico proyecta que la demanda de los data centers se cuadruplique al 2030 y llegue a ~10% del consumo nacional hacia 2032. En <b>Quilicura</b> ya representan el ${D.quilicuraPct}% del consumo eléctrico industrial-comercial de la comuna. El cuello de botella no es generación —Chile tiene 37 GW instalados— sino transmisión y distribución: el mismo diagnóstico que explica el vertimiento renovable del norte en la vista Solar.</p>
+    <p class="fuente">Colliers · CBRE Global Data Center Trends 2026 · GPS Property vía InvestChile · Coordinador Eléctrico Nacional · M. Neto, «Los data centers y la energía en Chile» (DataCenterBoom!, feb-2026). Ninguna de estas cifras proviene del catastro IIR.</p>`;
   },
   segunda:r=>{
     const d=dc(r);
@@ -1164,6 +1268,8 @@ function aplicarVista(nombre){
   }
   detalle.innerHTML=v.inicial();
   resumen.innerHTML=v.resumen();
+  extra.innerHTML=v.extra?v.extra():'';   // tarjeta fija: solo la usa la vista datacenters
+  extra.hidden=!v.extra;
 }
 
 const PESTANAS=[['tGlobal','global'],['tSolar','solar'],['tDatos','datacenters']]

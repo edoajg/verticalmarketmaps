@@ -66,6 +66,24 @@ OP = {'Scala Chile Data Centers SpA':'Scala Data Centers',
  'Microsoft Chile SA':'Microsoft','Huawei Technologies Co Ltd':'Huawei',
  'Alibaba (China) Company Limited':'Alibaba Cloud','Zelestra Chile SAS':'Zelestra'}
 
+# Etapa del ciclo de vida IIR: viene embebida en el Scope como
+# "performs <actividad> for <nombre del proyecto>". No hay campo estructurado.
+ETAPA = {'Completion':'co', 'Final Commissioning':'fc', 'Construction':'cn',
+ 'Purchasing':'pu', 'Planning and Scheduling':'pl', 'Permitting':'pe',
+ 'Detailed Design':'dd', 'Preliminary Engineering':'pi', 'Preliminary Design':'dp',
+ 'Capital Approval':'ca', 'Project Justification':'ju', 'Project Scope':'al',
+ 'Market Analysis':'ma'}
+BOLSA = {'co':'fin','fc':'fin','cn':'obr','pu':'ing','pl':'ing','pe':'ing','dd':'ing',
+ 'pi':'est','dp':'est','ca':'est','ju':'est','al':'est','ma':'est','nd':'nd'}
+BOLSAS = [('fin','Terminado o en comisionamiento'), ('obr','En construcción'),
+ ('ing','Compras, permisos e ingeniería'), ('est','Estudio previo'),
+ ('nd','Sin etapa declarada')]
+RXET = re.compile(r'performs\s+([A-Za-z ]+?)\s+for\s', re.I)
+
+def etapa(sc):
+    m = RXET.search(sc or '')
+    return ETAPA.get(m.group(1).strip(), 'nd') if m else 'nd'
+
 COM = {'Valparaiso': 'Valparaíso'}
 MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
 
@@ -81,7 +99,8 @@ for r in data:
         n=acentos(titulo(r[idx['Project Name']])), c=COM.get(c, c),
         p=OP[r[idx['Project Owner']]],
         i=round((r[idx['Total Investment Value']] or 0) / 1e6, 1),
-        mw=MW.get(pid), a=r[idx['Kickoff Date']], e=TIPO[r[idx['Project Type']]]))
+        mw=MW.get(pid), a=r[idx['Kickoff Date']], e=TIPO[r[idx['Project Type']]],
+        s=etapa(r[idx['Scope']])))
 
 TXT = {
  13: ("Concentra casi toda la cartera del país: 71 de los 79 proyectos y el 91% de la inversión anunciada.",
@@ -155,6 +174,13 @@ out.append("    tipos:[['Obra nueva · grassroot',%d,%s],['Ampliación de planta
            "['Adición de equipamiento',%d,%s],['Otros · brownfield y transmisión',%d,%s]]," % (
     tipos['gr'][0], round(tipos['gr'][1], 1), tipos['ex'][0], round(tipos['ex'][1], 1),
     tipos['eq'][0], round(tipos['eq'][1], 1), otros_n, otros_i))
+et = defaultdict(lambda: [0, 0.0])
+for p in proys:
+    b = BOLSA[p['s']]
+    et[b][0] += 1
+    et[b][1] += p['i']
+out.append('    etapas:[' + ','.join("['%s','%s',%d,%s]" % (k, n, et[k][0], round(et[k][1], 1))
+                                     for k, n in BOLSAS if et[k][0]) + '],')
 out.append('    top:[' + ','.join("['%s',%s]" % (k, round(v, 1)) for k, v in ops.most_common(5)) + '],')
 out.append('    serie:[' + ','.join('[%d,%s]' % (y, v) for y, v in serie) + ']')
 out.append('  },')
@@ -169,6 +195,13 @@ for cod in CODS:
     perfil, nota = TXT[cod]
     out.append('    %d:{inv:%s, n:%d, mw:%s, nmw:%d, comunas:%d,' % (
         cod, inv, len(ps), mw, sum(1 for p in ps if p['mw']), len(set(p['c'] for p in ps))))
+    eb = defaultdict(lambda: [0, 0.0])
+    for p in ps:
+        b = BOLSA[p['s']]
+        eb[b][0] += 1
+        eb[b][1] += p['i']
+    out.append('       etapas:{' + ','.join("%s:[%d,%s]" % (k, eb[k][0], round(eb[k][1], 1))
+                                            for k, _ in BOLSAS if eb[k][0]) + '},')
     out.append('       ops:[' + ','.join("['%s',%s]" % (k, round(v, 1)) for k, v in o.most_common()) + '],')
     out.append('       perfil:%s,' % js(perfil))
     out.append('       nota:%s,' % js(nota))
@@ -176,9 +209,9 @@ for cod in CODS:
         out.append('       obras:[')
         for k, p in enumerate(ps):
             mwtxt = ('mw:%s, ' % num(p['mw'])) if p['mw'] else ''
-            out.append('         {n:%s, c:%s, p:%s, i:%s, %sa:%s, e:%s}%s' % (
+            out.append('         {n:%s, c:%s, p:%s, i:%s, %sa:%s, e:%s, s:%s}%s' % (
                 js(p['n']), js(p['c']), js(p['p']), p['i'], mwtxt, js(fecha(p['a'])), js(p['e']),
-                ',' if k < len(ps) - 1 else ']},'))
+                js(p['s']), ',' if k < len(ps) - 1 else ']},'))
     else:
         out.append('       obras:[]},')
 out[-1] = out[-1].rstrip(',')
