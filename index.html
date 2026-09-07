@@ -302,20 +302,22 @@ const SOLAR = {
         obras:[{n:'Limachino III', c:'—', mw:9, p:'—', a:'RCA jul-2026', e:'rca'}]},
     13:{mw:1163, pct:5.55,  centrales:131,  nb:[150.4,15129], pmgd:700,  recorte:30,
         perfil:'Máxima densidad de centrales del país, casi todas PMGD solar y mini hidro de pasada.',
-        nota:'131 centrales ERNC, el mayor conteo de Chile, pero de pequeña escala. Sus dos plantas de escala utility son vecinas en el corredor de Til Til y Colina. Concentra además el 29% de toda la capacidad Net Billing nacional: 150,4 MW en 15.129 instalaciones.',
+        nota:'131 centrales ERNC, el mayor conteo de Chile, pero de pequeña escala. Sus tres plantas de escala utility se agrupan en el corredor de Til Til y Colina; El Manzano fue la primera híbrida FV+BESS de la región. Concentra además el 29% de toda la capacidad Net Billing nacional: 150,4 MW en 15.129 instalaciones.',
         obras:[
           {n:'Santiago Solar', c:'Til Til', mw:115, p:'AME + EDF Power Solutions',          a:'2018', e:'op', b:'360 MWh en desarrollo'},
-          {n:'Quilapilún',     c:'Colina',  mw:110, p:'SunEdison → Atlas Renewable Energy', a:'2017', e:'op'}]},
+          {n:'Quilapilún',     c:'Colina',  mw:110, p:'SunEdison → Atlas Renewable Energy', a:'2017', e:'op'},
+          {n:'El Manzano',     c:'Til Til', mw:99,  p:'Enel Green Power',                   a:'2024', e:'op', b:'67 MW · 2 h'}]},
     6:{ mw:866,  pct:4.13,  centrales:106,  nb:[43.1,1702],   pmgd:545,  recorte:10,
         perfil:'Arquetipo del modelo distribuido: muchas centrales pequeñas conectadas en redes de distribución.',
         nota:'106 centrales ERNC y 545 MW de PMGD, el segundo del país. Alcones está en pruebas y sería su primera planta solar de escala utility: hasta ahora toda la fotovoltaica regional era de ≤9 MW junto a los centros de consumo.',
         obras:[
           {n:'Alcones', c:'Marchigüe', mw:90, p:'Opdenergy', a:'en pruebas 2026', e:'pr', b:'90 MW / 500 MWh'}]},
     7:{ mw:982,  pct:4.68,  centrales:96,   nb:[78.2,5233],   pmgd:541,  recorte:55,
-        perfil:'Mezcla de mini hidro, biomasa y PMGD solar; sin utility fotovoltaica en operación.',
-        nota:'541 MW de PMGD y 5.233 instalaciones Net Billing. El Coipo Solar (145 MW con BESS) obtuvo RCA en julio de 2026 y Mineru Solar (Pelarco, 133 MW) está en calificación ambiental: cualquiera de los dos sería la primera planta solar de escala de la región.',
+        perfil:'Mini hidro, biomasa y PMGD solar, más la mayor planta fotovoltaica del sur del país.',
+        nota:'Gran Teno (200 MWac / 241 MWp) desmiente que el Maule crezca solo con generación distribuida, aunque el PMGD aún suma 541 MW. Grenergy la hibridará con baterías dentro de su plataforma Central Oasis, que añade Tamango (49 MW, en operación) y Planchón (108 MW) repartidos entre el Maule y el Biobío.',
         obras:[
-          {n:'El Coipo Solar', c:'—',       mw:145, p:'—', a:'RCA jul-2026', e:'rca', b:'con BESS'},
+          {n:'Gran Teno',      c:'Teno',    mw:200, p:'Grenergy Renovables', a:'2024', e:'op', b:'en desarrollo · 2027'},
+          {n:'El Coipo Solar', c:'—',       mw:145, p:'—', a:'RCA jul-2026', e:'rca', b:true},
           {n:'Mineru Solar',   c:'Pelarco', mw:133, p:'—', a:'en el SEA',    e:'ev'}]},
     16:{mw:388,  pct:1.85,  centrales:42,   nb:[24.3,1978],   pmgd:236,  recorte:5,
         perfil:'Cerca de dos tercios de su ERNC son PMGD solar: matriz renovable mayoritariamente fotovoltaica distribuida.',
@@ -323,8 +325,9 @@ const SOLAR = {
         obras:[]},
     8:{ mw:1256, pct:5.99,  centrales:65,   nb:[28.1,3373],   pmgd:307,  recorte:30,
         perfil:'Dominada por biomasa forestal y eólica; lo solar entra por PMGD y autoconsumo.',
-        nota:'1.256 MW de ERNC, pero la fotovoltaica es minoritaria: 307 MW de PMGD y 3.373 instalaciones Net Billing frente a un parque de biomasa asociado a la industria forestal.',
-        obras:[]},
+        nota:'1.256 MW de ERNC, pero la fotovoltaica es hoy minoritaria: 307 MW de PMGD y 3.373 instalaciones Net Billing frente a un parque de biomasa asociado a la industria forestal. Monte Águila, en construcción en Cabrero desde octubre de 2025, será su primera planta solar de escala utility.',
+        obras:[
+          {n:'Monte Águila', c:'Cabrero', mw:342, p:'Grenergy Renovables', a:'conexión 2027', e:'co', b:'1.034 MWh'}]},
     9:{ mw:1049, pct:5.00,  centrales:27,   nb:[15.6,1953],   pmgd:null, recorte:70,
         perfil:'ERNC casi enteramente eólica y de biomasa, concentrada en pocas centrales grandes.',
         nota:'Su vertimiento es eólico, no solar. Aun así, el 100% de su cartera en calificación ambiental es fotovoltaica (~223 MW), lo que anticipa un cambio de perfil.',
@@ -336,7 +339,7 @@ const SOLAR = {
     10:{mw:483,  pct:2.30,  centrales:3,    nb:[24.9,1332],   pmgd:null, recorte:8,
         perfil:'Base eólica en muy pocas centrales; la solar es marginal por latitud y radiación.',
         nota:'El Tepual Norte (18 MW con BESS) obtuvo RCA en julio de 2026 y sería el primer FV+BESS del sur austral. El conteo de centrales corresponde a mayo-2024 y quedó desfasado frente a la capacidad actual.',
-        obras:[{n:'El Tepual Norte', c:'—', mw:18, p:'—', a:'RCA jul-2026', e:'rca', b:'con BESS'}]},
+        obras:[{n:'El Tepual Norte', c:'—', mw:18, p:'—', a:'RCA jul-2026', e:'rca', b:true}]},
     11:{mw:24,   pct:0.11,  centrales:14,   nb:[0.9,177],     pmgd:null, recorte:null,
         perfil:'Sistemas medianos aislados del SEN: eólica y mini hidro de pequeña escala.',
         nota:'No está conectada al Sistema Eléctrico Nacional. Lo fotovoltaico se reduce a 0,9 MW de Net Billing en 177 instalaciones.',
@@ -508,7 +511,7 @@ solar:{
             txt:miles(s.mw)+' MW', col:SOLOSC};
   },
   etiqueta:r=>`${r.nombre}, ${miles(sol(r).mw)} megavatios renovables instalados`,
-  pie:'<b>Sobre los datos.</b> La barra corresponde a la capacidad ERNC y de almacenamiento instalada por región (<b>ACERA</b>, Boletín de Estadísticas de julio 2026, Figura 7), que en el norte grande es casi enteramente solar FV. No existe una tabla oficial de MW solar-FV desagregados por las 16 regiones: por eso el detalle se apoya en Net Billing (ACERA, Figura 9, junio 2026), PMGD (marzo 2026) y el catastro de proyectos utility. El n.º de centrales ERNC proviene de la CNE/Coordinador con corte a mayo de 2024, de modo que en algunas regiones no calza con la capacidad de julio de 2026. Los recortes por región se leen de la Figura 5 del boletín, que no publica tabla: van marcados con ≈. El catastro de proyectos utility combina el informe base con prensa sectorial y comunicaciones de los propietarios (Enel Green Power, Engie, Atlas, Opdenergy, AME/EDF), verificadas en septiembre de 2026; las capacidades pueden estar en MWac o MWp según la fuente.',
+  pie:'<b>Sobre los datos.</b> La barra corresponde a la capacidad ERNC y de almacenamiento instalada por región (<b>ACERA</b>, Boletín de Estadísticas de julio 2026, Figura 7), que en el norte grande es casi enteramente solar FV. No existe una tabla oficial de MW solar-FV desagregados por las 16 regiones: por eso el detalle se apoya en Net Billing (ACERA, Figura 9, junio 2026), PMGD (marzo 2026) y el catastro de proyectos utility. El n.º de centrales ERNC proviene de la CNE/Coordinador con corte a mayo de 2024, de modo que en algunas regiones no calza con la capacidad de julio de 2026. Los recortes por región se leen de la Figura 5 del boletín, que no publica tabla: van marcados con ≈. El catastro de proyectos utility combina el informe base con prensa sectorial y comunicaciones de los propietarios (Enel Green Power, Engie, Atlas, Grenergy, Opdenergy, AME/EDF), verificadas en septiembre de 2026; las capacidades pueden estar en MWac o MWp según la fuente.',
   detalle:r=>{
     const s=sol(r), p=SOLAR.pais;
     const micro=[
@@ -523,7 +526,7 @@ solar:{
       if(o.e==='rca') c+='<span class="chip rca">RCA aprobada</span>';
       if(o.e==='pr')  c+='<span class="chip constr">En pruebas</span>';
       if(o.e==='ev')  c+='<span class="chip rca">En calificación</span>';
-      if(o.b) c+=`<span class="chip bess">BESS ${o.b}</span>`;
+      if(o.b) c+=`<span class="chip bess">${o.b===true?'Con BESS':'BESS '+o.b}</span>`;
       return c;
     };
     const obras = s.obras.length
