@@ -170,8 +170,17 @@ footer b{color:var(--tinta);font-weight:600}
 .leyDona b{font-family:var(--mono);font-size:11px;font-weight:600;white-space:nowrap}
 .leyDona u{grid-column:2/-1;text-decoration:none;font-family:var(--mono);font-size:10px;color:var(--tenue)}
 body.vSolar{--foco:#0B6E6B;--focoSuave:rgba(11,110,107,.10)}
-body.vSolar .repartos b{font-size:20px}
-body.vSolar .repartos span{line-height:1.35;display:block}
+body.vSolar .repartos b,body.vDatos .repartos b{font-size:20px}
+body.vSolar .repartos span,body.vDatos .repartos span{line-height:1.35;display:block}
+
+/* ---------- panel: vista datacenters ---------- */
+body.vDatos{--foco:#2E5E8E;--focoSuave:rgba(46,94,142,.10)}
+body.vDatos .obra .on2{color:#1C3A57}
+.chip.nueva{color:#2E5E8E}
+.chip.amp{color:var(--tenue)}
+.chip.mw{color:var(--sol)}
+.restoObras{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--tenue);
+  margin:9px 0 0;padding-top:9px;border-top:1px dotted var(--linea)}
 
 @media (max-width:900px){
   .tablero{grid-template-columns:1fr}
@@ -202,6 +211,7 @@ body.vSolar .repartos span{line-height:1.35;display:block}
   <div class="pestanas" role="tablist" aria-label="Conjunto de indicadores">
     <button id="tGlobal" role="tab" aria-selected="true">Global</button>
     <button id="tSolar"  role="tab" aria-selected="false">Solar</button>
+    <button id="tDatos"  role="tab" aria-selected="false">Datacenters</button>
   </div>
   <span class="divisorMandos" aria-hidden="true"></span>
   <div class="grupo" id="mOrden" role="group" aria-label="Orden de las filas">
@@ -386,6 +396,191 @@ const SOLAR = {
   }
 };
 
+/* ============================================================
+   VISTA DATACENTERS · cartera de proyectos de data center por región
+   Fuente:
+   · Industrial Info Resources (IIR), export «Chile_IIR Projects.xlsx»
+     — 79 proyectos en Chile, con inversión total anunciada
+     (Total Investment Value), propietario/operador, tipo de proyecto,
+     comuna, región y fecha de arranque (Kickoff Date), 2018-2037.
+   · La capacidad en MW se extrajo del texto de alcance (Scope) de cada
+     proyecto: solo 41 de los 79 registros declaran una cifra propia,
+     de modo que los totales de MW son un piso, no la capacidad regional.
+   · Los registros marcados «Santiago Metro» se consolidaron en la
+     Región Metropolitana.
+   ============================================================ */
+const DC = {
+  corte:'catastro IIR · arranques 2018-2037',
+  pais:{
+    inv:8526.3, n:79, mw:863.3, nmw:41, ops:19, comunas:17, regiones:6, tardio:65,
+    tipos:[['Obra nueva · grassroot',38,5654.0],['Ampliación de planta',34,2497.3],['Adición de equipamiento',4,336.0],['Otros · brownfield y transmisión',3,39.0]],
+    top:[['GR Huina',2100.0],['Ascenty (Digital Realty)',1270.0],['Scala Data Centers',989.0],['TECfusions',800.0],['Amazon Web Services',780.0]],
+    serie:[[2018,5.0],[2019,210.0],[2020,10.0],[2021,57.0],[2022,396.5],[2023,162.0],[2024,253.4],[2025,439.5],[2026,1178.4],[2027,1260.5],[2028,1962.0],[2029,1530.4],[2030,956.6],[2031,40.0]]
+  },
+  reg:{
+    15:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'No aparece en el catastro. La demanda de cómputo sigue anclada al eje Santiago–Valparaíso, a más de 2.000 km de aquí.',
+       obras:[]},
+    1:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos en el catastro. El tamaño de la red local y la distancia a los puntos de intercambio de tráfico dejan a la región fuera del mapa.',
+       obras:[]},
+    2:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada, pese a ser la mayor región eléctrica renovable del país.',
+       nota:'Concentra el 36% de la capacidad ERNC de Chile —7.596 MW— y el mayor vertimiento nacional, pero no registra un solo proyecto de data center. La carga de cómputo no ha seguido al recurso energético.',
+       obras:[]},
+    3:{inv:600.0, n:1, mw:80, nmw:1, comunas:1,
+       ops:[['Zelestra',600.0]],
+       perfil:'Una sola operación, pero la segunda mayor del país: el hiperescala de Zelestra en el desierto de Atacama.',
+       nota:'US$ 600 millones y 80 MW en Tierra Amarilla, con arranque previsto en septiembre de 2028. Es el primer intento de acercar la carga de cómputo al lugar donde se concentra el recurso solar: la región tiene 4.036 MW de ERNC instalada y vertió unos 775 GWh en el primer semestre de 2026.',
+       obras:[
+         {n:'Tierra Amarilla (Desierto de Atacama) Grassroot Data Center', c:'Tierra Amarilla', p:'Zelestra', i:600.0, mw:80, a:'sep-2028', e:'gr'}]},
+    4:{inv:5.0, n:1, mw:0, nmw:0, comunas:1,
+       ops:[['AURA (observatorios)',5.0]],
+       perfil:'Único proyecto de la región: el centro de datos astronómicos de AURA en La Serena.',
+       nota:'US$ 5 millones (2018) para procesar y almacenar la producción de los observatorios del Norte Chico. Es el proyecto más antiguo del catastro y el único que no responde a demanda comercial de cómputo.',
+       obras:[
+         {n:'La Serena (Colina El Pino) Grassroot Data Center', c:'La Serena', p:'AURA (observatorios)', i:5.0, a:'jun-2018', e:'gr'}]},
+    5:{inv:122.0, n:4, mw:30, nmw:4, comunas:1,
+       ops:[['Scala Data Centers',122.0]],
+       perfil:'Cuatro fases de un mismo campus de Scala Data Centers en la ciudad de Valparaíso.',
+       nota:'CUR01 a CUR04 suman US$ 122 millones y 30 MW declarados entre 2022 y 2027. Junto a la Metropolitana, es la única región con un campus de fases sucesivas en lugar de una instalación aislada.',
+       obras:[
+         {n:'Valparaíso Grassroot Data Center SSCLCR02 Phase II', c:'Valparaíso', p:'Scala Data Centers', i:75.0, mw:10, a:'jun-2026', e:'gr'},
+         {n:'Valparaíso Grassroot Data Center (CUR03) Phase III', c:'Valparaíso', p:'Scala Data Centers', i:18.0, mw:10, a:'mar-2026', e:'gr'},
+         {n:'Valparaíso Grassroot Data Center (CUR01) Phase I', c:'Valparaíso', p:'Scala Data Centers', i:14.5, mw:5, a:'sep-2022', e:'gr'},
+         {n:'Valparaíso Grassroot Data Center (CUR04) Phase IV', c:'Valparaíso', p:'Scala Data Centers', i:14.5, mw:5, a:'jun-2027', e:'gr'}]},
+    13:{inv:7775.3, n:71, mw:753.3, nmw:36, comunas:12,
+       ops:[['GR Huina',2100.0],['Ascenty (Digital Realty)',1270.0],['Scala Data Centers',867.0],['TECfusions',800.0],['Amazon Web Services',780.0],['EdgeConneX',575.0],['DC Terranova',436.0],['Google',340.0],['Odata (Aligned)',304.3],['Cirion Technologies',152.0],['Equinix',125.0],['Huawei',10.0],['Alibaba Cloud',10.0],['Axxa Group',4.0],['Microsoft',2.0]],
+       perfil:'Concentra casi toda la cartera del país: 71 de los 79 proyectos y el 91% de la inversión anunciada.',
+       nota:'Doce comunas del Gran Santiago absorben la totalidad de la cartera regional. Quilicura (12 proyectos), Buin, Huechuraba y Lampa (10 cada una) forman el eje del clúster. El campus de Alto Jahuel de GR Huina —cuatro edificios, 300 MW y US$ 2.100 millones— es la mayor apuesta individual del catastro.',
+       obras:[
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South IV)', c:'Buin', p:'GR Huina', i:700.0, mw:100, a:'jul-2030', e:'gr'},
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South I)', c:'Buin', p:'GR Huina', i:560.0, mw:80, a:'jun-2028', e:'gr'},
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South II)', c:'Buin', p:'GR Huina', i:420.0, mw:60, a:'jun-2029', e:'gr'},
+         {n:'Buin (Alto Jahuel) Grassroot Data Center (South III)', c:'Buin', p:'GR Huina', i:420.0, mw:60, a:'jun-2029', e:'gr'},
+         {n:'Puente Alto Data Center Expansion Phase II', c:'Puente Alto', p:'TECfusions', i:360.0, mw:45, a:'oct-2028', e:'ex'},
+         {n:'Puente Alto Data Center Expansion Phase III', c:'Puente Alto', p:'TECfusions', i:360.0, mw:45, a:'jul-2029', e:'ex'},
+         {n:'Quilicura Grassroot Data Center SCL04 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:330.0, mw:50, a:'oct-2026', e:'gr'},
+         {n:'Quilicura Grassroot Data Center SCL05 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:330.0, mw:50, a:'may-2027', e:'gr'},
+         {n:'San Bernardo Grassroot Data Center EDCSCL11', c:'San Bernardo', p:'EdgeConneX', i:250.0, a:'feb-2022', e:'gr'},
+         {n:'Colina Grassroot Data Center SCL04', c:'Colina', p:'EdgeConneX', i:230.0, mw:33, a:'abr-2027', e:'gr'},
+         {n:'Lampa Grassroot Data Center SSCLLP03 Phase II', c:'Lampa', p:'Scala Data Centers', i:225.0, a:'sep-2026', e:'gr'},
+         {n:'Quilicura Data Center SCL04 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:165.0, mw:25, a:'nov-2027', e:'ex'},
+         {n:'Quilicura Data Center SCL05 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:165.0, mw:25, a:'jun-2028', e:'ex'},
+         {n:'Quilicura Grassroot Data Center 1', c:'Quilicura', p:'Google', i:140.0, a:'oct-2019', e:'gr'},
+         {n:'Quilicura Grassroot Data Center · Data Hall', c:'Quilicura', p:'Ascenty (Digital Realty)', i:140.0, mw:16, a:'jul-2026', e:'gr'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase I', c:'Buin', p:'DC Terranova', i:134.4, mw:19.2, a:'mar-2029', e:'eq'},
+         {n:'Padre Hurtado Grassroot Data Center Phase I', c:'Padre Hurtado', p:'Amazon Web Services', i:126.0, a:'abr-2024', e:'gr'},
+         {n:'Padre Hurtado Data Center Expansion Phase II', c:'Padre Hurtado', p:'Amazon Web Services', i:126.0, a:'sep-2025', e:'ex'},
+         {n:'Lampa Grassroot SSCLLP02 Data Center', c:'Lampa', p:'Scala Data Centers', i:126.0, mw:18, a:'dic-2025', e:'gr'},
+         {n:'Padre Hurtado Data Center Expansion Phase III', c:'Padre Hurtado', p:'Amazon Web Services', i:108.0, a:'dic-2027', e:'ex'},
+         {n:'Puente Alto Grassroot Data Center Phase I', c:'Puente Alto', p:'Amazon Web Services', i:100.0, a:'nov-2023', e:'gr'},
+         {n:'Huechuraba Grassroot Data Center Campus Phase I', c:'Huechuraba', p:'Amazon Web Services', i:100.0, a:'feb-2026', e:'gr'},
+         {n:'Quilicura Data Center Expansion Phase II SAN2', c:'Quilicura', p:'Cirion Technologies', i:100.0, mw:10, a:'ago-2026', e:'ex'},
+         {n:'Cerrillos Grassroot Data Center DC01 Phase I', c:'Cerrillos', p:'Google', i:100.0, a:'ene-2027', e:'gr'},
+         {n:'Cerrillos Grassroot Data Center DC02 Phase II', c:'Cerrillos', p:'Google', i:100.0, a:'ene-2027', e:'gr'},
+         {n:'Puente Alto Grassroot Data Center Phase I', c:'Puente Alto', p:'TECfusions', i:80.0, mw:10, a:'sep-2027', e:'gr'},
+         {n:'Quilicura Grassroot Data Center', c:'Quilicura', p:'Ascenty (Digital Realty)', i:70.0, a:'jun-2019', e:'gr'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase II', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase III', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq'},
+         {n:'Buin (Alto Jahuel) Data Center Equipment Addition Phase IV', c:'Buin', p:'DC Terranova', i:67.2, mw:9.6, a:'ago-2030', e:'eq'},
+         {n:'Huechuraba Data Center Campus Expansion Phase III', c:'Huechuraba', p:'Amazon Web Services', i:65.0, a:'dic-2037', e:'ex'},
+         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase II', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'ene-2025', e:'ex'},
+         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase III', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'oct-2025', e:'ex'},
+         {n:'San Bernardo ST02 40 MW Data Center Expansion Phase IV', c:'San Bernardo', p:'Odata (Aligned)', i:62.5, a:'oct-2025', e:'ex'},
+         {n:'Puente Alto Data Center Expansion Phase III', c:'Puente Alto', p:'Amazon Web Services', i:55.0, a:'mar-2030', e:'ex'},
+         {n:'Quilicura Data Center Expansion Phase III (SAN2)', c:'Quilicura', p:'Cirion Technologies', i:50.0, a:'nov-2026', e:'ex'},
+         {n:'Colina Grassroot Data Center SCL03', c:'Colina', p:'EdgeConneX', i:50.0, mw:7, a:'abr-2027', e:'gr'},
+         {n:'Las Condes Grassroot Data Center Phase I', c:'Buin', p:'DC Terranova', i:50.0, a:'mar-2028', e:'gr'},
+         {n:'Puente Alto Data Center Expansion Phase II', c:'Puente Alto', p:'Amazon Web Services', i:50.0, a:'ene-2029', e:'ex'},
+         {n:'Las Condes Data Center Expansion Phase II', c:'Buin', p:'DC Terranova', i:50.0, a:'mar-2029', e:'ex'},
+         {n:'Lampa Grassroot SSCLLP01 Data Center Phase I', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'may-2023', e:'gr'},
+         {n:'Huechuraba Grassroot Data Center SSCLHB02 Phase I', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ago-2024', e:'gr'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase II', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'nov-2026', e:'ex'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase II', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jun-2027', e:'ex'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase III', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2028', e:'ex'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase III', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2028', e:'ex'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase IV', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jul-2028', e:'ex'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase IV', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'jul-2028', e:'ex'},
+         {n:'Huechuraba Data Center SSCLHB02 Expansion Phase V', c:'Huechuraba', p:'Scala Data Centers', i:48.0, mw:4.8, a:'ene-2029', e:'ex'},
+         {n:'Lampa Data Center SSCLLP01 Expansion Phase V', c:'Lampa', p:'Scala Data Centers', i:48.0, mw:4.8, a:'feb-2029', e:'ex'},
+         {n:'Lampa Data Center ST01 2B Expansion Phase IV', c:'Lampa', p:'Odata (Aligned)', i:43.4, mw:6, a:'oct-2024', e:'ex'},
+         {n:'Lampa Data Center ST01-2C Expansion Phase V', c:'Lampa', p:'Odata (Aligned)', i:43.4, mw:6, a:'may-2026', e:'ex'},
+         {n:'Huechuraba Data Center Campus Expansion Phase II', c:'Huechuraba', p:'Amazon Web Services', i:40.0, a:'feb-2031', e:'ex'},
+         {n:'Huechuraba Grassroot Data Center SSCLHB01', c:'Huechuraba', p:'Scala Data Centers', i:36.0, mw:4.8, a:'ago-2024', e:'gr'},
+         {n:'Santiago Grassroot (DH1) Data Center No. 2 Phase I', c:'Quilicura', p:'Ascenty (Digital Realty)', i:35.0, a:'jun-2021', e:'gr'},
+         {n:'Santiago (DH2 & DH3) Data Center No. 2 Expansion Phase II', c:'Quilicura', p:'Ascenty (Digital Realty)', i:35.0, a:'feb-2022', e:'ex'},
+         {n:'Colina Brownfield Data Center (SCL02)', c:'Colina', p:'EdgeConneX', i:35.0, a:'oct-2022', e:'br'},
+         {n:'Pudahuel Grassroot ST5 Data Center Phase I', c:'Pudahuel', p:'Equinix', i:35.0, mw:3.5, a:'mar-2026', e:'gr'},
+         {n:'Pudahuel ST5 Data Center Expansion Phase III', c:'Pudahuel', p:'Equinix', i:35.0, a:'dic-2027', e:'ex'},
+         {n:'Pudahuel ST5 Data Center Expansion Phase IV', c:'Pudahuel', p:'Equinix', i:35.0, a:'sep-2028', e:'ex'},
+         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Odata (Aligned)', i:30.0, a:'ene-2022', e:'gr'},
+         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Huawei', i:10.0, a:'jul-2020', e:'gr'},
+         {n:'Santiago Grassroot Data Center', c:'Santiago', p:'Alibaba Cloud', i:10.0, a:'mar-2021', e:'gr'},
+         {n:'Colina Data Center SCL02 Warehouses Addition', c:'Colina', p:'EdgeConneX', i:10.0, a:'oct-2022', e:'ex'},
+         {n:'Puente Alto Data Center Electric Substation Addition Phase I', c:'Puente Alto', p:'Amazon Web Services', i:10.0, a:'nov-2023', e:'ex'},
+         {n:'Pudahuel ST5 Data Center Expansion Phase II', c:'Pudahuel', p:'Equinix', i:10.0, mw:1, a:'dic-2026', e:'ex'},
+         {n:'Macul Pedro de Valdivia Data Center Expansion', c:'Macul', p:'Equinix', i:5.0, a:'mar-2021', e:'ex'},
+         {n:'Santiago (Amunátegui) Data Center Expansion', c:'Santiago', p:'Equinix', i:5.0, a:'mar-2021', e:'ex'},
+         {n:'Lampa Grassroot Data Center', c:'Lampa', p:'Axxa Group', i:4.0, mw:2, a:'oct-2023', e:'gr'},
+         {n:'Huechuraba CenturyLink Data Center Modernization', c:'Huechuraba', p:'Cirion Technologies', i:2.0, a:'ene-2021', e:'up'},
+         {n:'Quilicura Data Center SCL03 Substation and Transmission Line Addition Phase I', c:'Quilicura', p:'Microsoft', i:2.0, a:'oct-2022', e:'tr'}]},
+    6:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos, pese a limitar con el eje metropolitano donde se concentra el 91% de la inversión anunciada.',
+       obras:[]},
+    7:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos en el catastro, aunque su parque ERNC (982 MW) supera al de varias regiones del norte.',
+       obras:[]},
+    16:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos en el catastro.',
+       obras:[]},
+    8:{inv:4.0, n:1, mw:0, nmw:0, comunas:1,
+       ops:[['Grupo Energy Service',4.0]],
+       perfil:'Un proyecto pequeño en Coronel, asociado al polo industrial y energético local.',
+       nota:'US$ 4 millones con arranque en noviembre de 2026. Es la única presencia del catastro al sur del Maule y su alcance no declara capacidad en MW.',
+       obras:[
+         {n:'Coronel Quiñenco Grassroot Data Center', c:'Coronel', p:'Grupo Energy Service', i:4.0, a:'nov-2026', e:'gr'}]},
+    9:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos en el catastro. Su matriz renovable es mayoritariamente eólica y de biomasa.',
+       obras:[]},
+    14:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos en el catastro.',
+       obras:[]},
+    10:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos en el catastro. El data center más austral del país está en Punta Arenas, 1.300 km al sur.',
+       obras:[]},
+    11:{inv:0, n:0, mw:0, nmw:0, comunas:0,
+       ops:[],
+       perfil:'Sin cartera de data centers registrada.',
+       nota:'Sin proyectos en el catastro. La región tampoco está conectada al Sistema Eléctrico Nacional.',
+       obras:[]},
+    12:{inv:20.0, n:1, mw:0, nmw:0, comunas:1,
+       ops:[['Comunicación y Telefonía Rural',20.0]],
+       perfil:'Un data center regional de conectividad en Punta Arenas, sin escala hiperescala.',
+       nota:'US$ 20 millones con arranque en julio de 2022. Su alcance no declara capacidad en MW: responde a necesidades de conectividad austral más que a demanda de cómputo.',
+       obras:[
+         {n:'Punta Arenas Grassroot Data Center', c:'Punta Arenas', p:'Comunicación y Telefonía Rural', i:20.0, a:'jul-2022', e:'gr'}]}
+  }
+};
+
+
 /* ---------- geometría del lienzo ---------- */
 const VW=780, VH=1040;
 const MX=10, MY=22;                 // origen del mapa
@@ -393,6 +588,7 @@ const FX=244, FW=VW-FX-12;          // franja de filas
 const FY=24, FH=61;                 // alto de cada fila
 const CERO=524, ESC=25.5;           // x del cero y px por punto porcentual (vista global)
 const BASE=372, ANCHO=296, TOPE=5000; // origen, ancho útil y tope de escala (vista solar)
+const TOPEDC=8000;                    // tope de escala, US$ MM (vista datacenters)
 
 const svg=document.getElementById('vista');
 const detalle=document.getElementById('detalle');
@@ -427,6 +623,23 @@ const tonoSol=v=>{                    // secuencial, vista solar
 const SOL='#BE7418', SOLOSC='#8A4A11';
 const fmt=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1);
 
+const dc=r=>DC.reg[r.cod];
+const DCMAX=Math.max(...Object.values(DC.reg).map(d=>d.inv));
+const tonoDC=v=>{                     // secuencial, vista datacenters
+  if(!v) return '#EAEDEF';            // gris neutro: región sin cartera
+  const t=0.08+0.92*Math.pow(Math.min(v/DCMAX,1),0.5);
+  return t<=0.5 ? mezcla('#E3EAF1','#6E9CC4',t*2) : mezcla('#6E9CC4','#1C3A57',(t-0.5)*2);
+};
+const DCC='#2E5E8E', DCOSC='#1C3A57';
+const usd=v=>{                                   // US$ MM, con decimal solo si lo tiene
+  const e=Math.floor(v);
+  return v%1 ? miles(e)+','+Math.round((v-e)*10) : miles(v);
+};
+const rangoDC=(()=>{                             // ranking de inversión por región
+  const o=Object.entries(DC.reg).filter(([,d])=>d.inv>0).sort((a,b)=>b[1].inv-a[1].inv), m={};
+  o.forEach(([k],i)=>m[k]=i+1); return m;
+})();
+
 const clase=v=>
   v>=2   ? 'Expansión'
 : v>=0.8 ? 'Crecimiento moderado'
@@ -449,7 +662,8 @@ const rangoSol=(()=>{                 // ranking de capacidad solar FV por regi�
 
 /* ---------- gráfico de dona ---------- */
 const PAL={util:'#BE7418', pmgd:'#E8B968', eol:'#0B6E6B', otr:'#93A2AB'};
-function dona(partes){
+const PALDC=['#1C3A57','#2E5E8E','#5B8DBE','#9DBBD6','#C3D2DE','#93A2AB'];
+function dona(partes,centro){
   const cx=53, cy=53, Re=48, ri=30, tot=partes.reduce((a,p)=>a+p.v,0);
   if(!tot) return '';
   const vis=partes.filter(p=>p.v>0);
@@ -468,9 +682,10 @@ function dona(partes){
     });
   }
   const fv=partes.filter(p=>p.k==='util'||p.k==='pmgd').reduce((a,p)=>a+p.v,0);
+  const c=centro || {c:Math.round(fv/tot*100)+'%', l:'SOLAR FV'};
   return `<svg class="donaSvg" viewBox="0 0 106 106" aria-hidden="true">${out}
-    <text class="dc" x="53" y="52">${Math.round(fv/tot*100)}%</text>
-    <text class="dl" x="53" y="64">SOLAR FV</text></svg>`;
+    <text class="dc" x="53" y="52">${c.c}</text>
+    <text class="dl" x="53" y="64">${c.l}</text></svg>`;
 }
 
 /* ============================================================
@@ -681,6 +896,134 @@ solar:{
     <div class="dona">${dona(partes)}<div class="leyDona">${filas}</div></div>
     <p class="nota">${desglose} El reparto por tecnología se midió sobre el gráfico regional de ACERA y el corte entre escala utility y PMGD es una estimación: no existe una tabla oficial que los separe por región.</p>`;
   }
+},
+
+datacenters:{
+  titulo:'Cartera de data centers por región · Chile',
+  rotulo:'Cartera de data centers · Chile',
+  h1:'Data centers<br><em>por región</em>',
+  bajada:'La barra mide la inversión anunciada en proyectos de data center: US$ 8.526 millones repartidos en 79 proyectos y solo seis de las dieciséis regiones. Nueve de cada diez dólares se quedan en la Región Metropolitana; el detalle de cada región lista sus operadores y sus proyectos uno a uno.',
+  meta:()=>`16 regiones<br>Fuente: <b>catastro IIR</b><br>Inversión anunciada, US$ MM`,
+  aria:'Mapa de Chile con la inversión anunciada en data centers por región',
+  ejeRot:'US$ MM ANUNCIADOS',
+  ticks:[0,2000,4000,6000,8000],
+  tickX:t=>BASE+t*ANCHO/TOPEDC,
+  tickTxt:t=>miles(t),
+  tickCero:t=>t===0,
+  escala:`<span>0</span><i style="background:linear-gradient(90deg,#EDF0F3,#E3EAF1,#6E9CC4,#1C3A57)"></i><span>US$ 7.800 MM</span>`,
+  orden2:'Por inversión',
+  ordenAria:'Orden de las filas',
+  valor:r=>dc(r).inv,
+  mapaFill:r=>tonoDC(dc(r).inv),
+  barra:r=>{
+    const v=dc(r).inv, w=v*ANCHO/TOPEDC;
+    return {x:BASE, w:Math.max(w,1.2), fill:v?DCC:'#C7D1D7',
+            tx:BASE+Math.max(w,1.2)+7, anc:'start',
+            txt:v?miles(v)+' MM':'—', col:v?DCOSC:'#98A6AE'};
+  },
+  etiqueta:r=>dc(r).n
+    ? `${r.nombre}, ${usd(dc(r).inv)} millones de dólares anunciados en ${dc(r).n} proyecto${dc(r).n===1?'':'s'} de data center`
+    : `${r.nombre}, sin proyectos de data center en el catastro`,
+  pie:'<b>Sobre los datos.</b> Cartera de proyectos de data center en Chile según el catastro de <b>Industrial Info Resources (IIR)</b>: 79 proyectos, US$ 8.526 millones y fechas de arranque declaradas entre 2018 y 2037. La barra mide la <b>inversión total anunciada</b> (Total Investment Value), no capacidad instalada ni obra ejecutada: mezcla proyectos ya en operación, en construcción y fases futuras que pueden no materializarse, y varias fases de un mismo campus aparecen como registros separados. La <b>capacidad en MW</b> se extrajo del texto de alcance de cada proyecto y solo 41 de los 79 registros declaran una cifra propia, de modo que los totales regionales de MW son un piso, no la capacidad de la región. Los registros marcados «Santiago Metro» se consolidaron en la Región Metropolitana.',
+  detalle:r=>{
+    const d=dc(r);
+    const micro=[
+      {v:miles(d.n), e:`proyecto${d.n===1?'':'s'}<br>en el catastro`},
+      {v:(d.mw||!d.n)?usd(d.mw)+'<span class="u">MW</span>':null,
+       e:d.n?`capacidad declarada<br>en ${d.nmw} de ${d.n} alcances`:'capacidad declarada<br>en los alcances'},
+      {v:miles(d.comunas), e:`comuna${d.comunas===1?'':'s'}<br>con proyecto`}
+    ].map(m=>`<div><b${m.v?'':' class="sd"'}>${m.v||'sin dato'}</b><span>${m.e}</span></div>`).join('');
+
+    const T={gr:['nueva','Obra nueva'], ex:['amp','Ampliación'], eq:['amp','Equipamiento'],
+             br:['amp','Brownfield'],   up:['amp','Modernización'], tr:['amp','Transmisión']};
+    const chip=o=>{
+      let c=`<span class="chip ${T[o.e][0]}">${T[o.e][1]}</span>`;
+      if(o.mw) c+=`<span class="chip mw">${usd(o.mw)} MW</span>`;
+      return c;
+    };
+    const CUPO=14;
+    const vis=d.obras.slice(0,CUPO), resto=d.obras.slice(CUPO);
+    const invResto=Math.round(resto.reduce((a,o)=>a+o.i,0)*10)/10;
+    const obras = d.obras.length
+      ? `<p class="sub" style="margin-top:16px">Proyectos del catastro${d.obras.length>CUPO?` · ${CUPO} mayores`:''}</p>
+         <div class="obras">${vis.map(o=>`<div class="obra">
+            <span class="on1">${o.n}${chip(o)}</span>
+            <span class="on2">US$ ${usd(o.i)} MM</span>
+            <span class="on3">${o.c} · ${o.p} · arranque ${o.a}</span>
+          </div>`).join('')}</div>
+         ${resto.length?`<p class="restoObras">+ ${resto.length} proyectos menores · US$ ${miles(invResto)} MM</p>`:''}`
+      : `<p class="sub" style="margin-top:16px">Sin cartera</p>
+         <p class="perfil">Ninguno de los ${DC.pais.n} proyectos del catastro se emplaza aquí: se reparten entre
+          <b>${DC.pais.regiones} regiones</b> y ${DC.pais.comunas} comunas, con el ${dec(DC.reg[13].inv/DC.pais.inv*100)}%
+          de la inversión en la Región Metropolitana.</p>`;
+
+    const col=d.inv?DCOSC:'#98A6AE';
+    return `
+    <p class="sub">Región ${r.romano} · capital ${r.capital}</p>
+    <h2>${r.nombre}</h2>
+    <div class="granCifra">
+      <b style="color:${col}">${d.inv?usd(d.inv):'0'}</b>
+      <span class="pastilla" style="color:${col}">US$ MM · ${dec(d.inv/DC.pais.inv*100)}% país</span>
+    </div>
+    <p class="pieCifra">${d.n
+      ? `Inversión total anunciada · ${d.n} proyecto${d.n===1?'':'s'} · ${rangoDC[r.cod]}.º lugar entre las ${DC.pais.regiones} regiones con cartera.`
+      : 'Sin proyectos de data center en el catastro.'}</p>
+    <p class="perfil">${d.perfil}</p>
+    <div class="micro">${micro}</div>
+    ${obras}
+    <p class="nota">${d.nota}</p>`;
+  },
+  inicial:()=>{
+    const g=(...c)=>c.reduce((a,k)=>a+DC.reg[k].inv,0);
+    const tot=DC.pais.inv;
+    const norte=g(15,1,2,3), centro=g(4,5,13,6,7), sur=g(16,8,9,14,10,11,12);
+    return `<p class="sub">Panorama</p>
+    <h2>Elige una región</h2>
+    <p class="vacio">Pasa el cursor por el mapa o por cualquier fila para ver la cartera regional, el reparto entre operadores y los proyectos uno a uno. Haz clic para fijar una región.</p>
+    <div class="repartos">
+      <div><b>${dec(norte/tot*100)}%</b><span>Norte Grande<br>XV · I · II · III</span></div>
+      <div><b style="color:${DCOSC}">${dec(centro/tot*100)}%</b><span>Centro<br>IV · V · RM · VI · VII</span></div>
+      <div><b>${dec(sur/tot*100)}%</b><span>Sur y austral<br>XVI a XII</span></div>
+    </div>`;
+  },
+  resumen:()=>{
+    const p=DC.pais, mx=Math.max(...p.tipos.map(t=>t[2]));
+    const cinco=Math.round(p.top.reduce((a,t)=>a+t[1],0)*10)/10;
+    return `<p class="sub">Chile · cartera de data centers</p>
+    <div class="granCifra">
+      <b style="color:${DCOSC}">${miles(p.inv)}</b>
+      <span class="pastilla" style="color:${DCOSC}">US$ MM · ${p.n} proyectos</span>
+    </div>
+    <p class="pieCifra">Inversión total anunciada por ${p.ops} operadores en ${p.comunas} comunas de ${p.regiones} regiones.</p>
+    ${chispaMW(p.serie,DCC)}
+    <p class="sub" style="margin-top:10px">${p.serie[0][0]} → ${p.serie[p.serie.length-1][0]} · US$ MM por año de arranque</p>
+    <p class="sub" style="margin-top:16px">Cartera por tipo de proyecto</p>
+    ${p.tipos.map(([n,c,v])=>`<div class="tuberia">
+        <span>${n}</span><span>${miles(v)} MM · ${c}</span>
+        <div class="pista"><i style="width:${v/mx*100}%;background:${DCC}"></i></div>
+      </div>`).join('')}
+    <p class="nota">Los cinco mayores operadores —${p.top.map(t=>t[0]).join(', ')}— reúnen <b>US$ ${miles(cinco)} millones</b>, el ${Math.round(cinco/p.inv*100)}% de la cartera. La curva excluye un proyecto de US$ ${p.tardio} millones cuyo arranque está declarado para 2037.</p>`;
+  },
+  segunda:r=>{
+    const d=dc(r);
+    if(!d.n) return VISTAS.datacenters.resumen();
+    const top=d.ops.slice(0,5), resto=d.ops.slice(5);
+    const partes=top.map((o,i)=>({k:'op'+i, c:PALDC[i], n:o[0], v:o[1]}));
+    if(resto.length) partes.push({k:'otr', c:PALDC[5], n:`Otros ${resto.length} operadores`,
+                                  v:Math.round(resto.reduce((a,o)=>a+o[1],0)*10)/10});
+    const pc=v=>dec(v/d.inv*100);
+    const filas=partes.filter(p=>p.v>0).map(p=>`<div>
+        <i style="background:${p.c}"></i><span>${p.n}</span><b>${usd(p.v)} MM</b>
+        <u>${pc(p.v)}% de la inversión regional</u></div>`).join('');
+    return `<p class="sub">Operadores · ${r.nombre}</p>
+    <div class="granCifra">
+      <b>${d.ops.length}</b>
+      <span class="pastilla">operador${d.ops.length===1?'':'es'} · ${d.n} proyecto${d.n===1?'':'s'}</span>
+    </div>
+    <p class="pieCifra">Reparto de la inversión anunciada según el propietario declarado del proyecto.</p>
+    <div class="dona">${dona(partes,{c:d.ops.length,l:'OPERADORES'})}<div class="leyDona">${filas}</div></div>
+    <p class="nota">${d.ops.length>1?`${d.ops[0][0]} encabeza la región con el ${pc(d.ops[0][1])}% de la inversión anunciada. `:''}La cifra corresponde al propietario que figura en el catastro, que no siempre coincide con el arrendatario final de la capacidad: buena parte de la obra de colocación se construye para terceros.</p>`;
+  }
 }
 };
 
@@ -799,6 +1142,7 @@ function aplicarVista(nombre){
   V=nombre;
   const v=VISTAS[V];
   document.body.classList.toggle('vSolar',V==='solar');
+  document.body.classList.toggle('vDatos',V==='datacenters');
   document.title=v.titulo;
   cab.rotulo.textContent=v.rotulo;
   cab.h1.innerHTML=v.h1;
@@ -822,21 +1166,22 @@ function aplicarVista(nombre){
   resumen.innerHTML=v.resumen();
 }
 
-const tGlobal=document.getElementById('tGlobal'), tSolar=document.getElementById('tSolar');
+const PESTANAS=[['tGlobal','global'],['tSolar','solar'],['tDatos','datacenters']]
+  .map(([id,v])=>({b:document.getElementById(id), v}));
 function elegirPestana(nombre){
   if(nombre===V){ soltar(); return; }   // misma pestaña: vuelve a «Elige una región»
-  tGlobal.setAttribute('aria-selected',String(nombre==='global'));
-  tSolar.setAttribute('aria-selected',String(nombre==='solar'));
+  PESTANAS.forEach(p=>p.b.setAttribute('aria-selected',String(p.v===nombre)));
   aplicarVista(nombre);
 }
-tGlobal.onclick=()=>elegirPestana('global');
-tSolar.onclick=()=>elegirPestana('solar');
-[tGlobal,tSolar].forEach((b,i,a)=>b.addEventListener('keydown',ev=>{
-  if(ev.key!=='ArrowRight'&&ev.key!=='ArrowLeft') return;
-  ev.preventDefault();
-  const n=a[(i+(ev.key==='ArrowRight'?1:a.length-1))%a.length];
-  n.focus(); n.click();
-}));
+PESTANAS.forEach((p,i)=>{
+  p.b.onclick=()=>elegirPestana(p.v);
+  p.b.addEventListener('keydown',ev=>{
+    if(ev.key!=='ArrowRight'&&ev.key!=='ArrowLeft') return;
+    ev.preventDefault();
+    const n=PESTANAS[(i+(ev.key==='ArrowRight'?1:PESTANAS.length-1))%PESTANAS.length].b;
+    n.focus(); n.click();
+  });
+});
 
 const bGeo=document.getElementById('bGeo'), bVar=document.getElementById('bVar');
 bGeo.onclick=()=>{porValor=false;bGeo.setAttribute('aria-pressed','true');bVar.setAttribute('aria-pressed','false');transitar(ordenGeo);};
@@ -889,7 +1234,7 @@ function chispa(serie){                 // serie divergente centrada en cero
     <circle cx="${X(serie.length-1)}" cy="${Y(ult)}" r="3.4" fill="${tinte(ult)}"/>
   </svg>`;
 }
-function chispaMW(pares){               // serie acumulativa desde cero
+function chispaMW(pares,col=SOL){       // serie desde una línea base en cero
   const w=300,h=78,p=8;
   const mx=Math.max(...pares.map(x=>x[1]));
   const X=i=>p+i*(w-2*p)/(pares.length-1);
@@ -898,11 +1243,11 @@ function chispaMW(pares){               // serie acumulativa desde cero
   const area=`${X(0)},${h-p} ${pts} ${X(pares.length-1)},${h-p}`;
   const ult=pares[pares.length-1][1];
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
-    <polygon points="${area}" fill="${SOL}" fill-opacity=".16"/>
+    <polygon points="${area}" fill="${col}" fill-opacity=".16"/>
     <line x1="0" y1="${h-p}" x2="${w}" y2="${h-p}" stroke="#C7D1D7" stroke-width="1"/>
-    <polyline points="${pts}" fill="none" stroke="${SOL}" stroke-width="2"
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2"
       stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-    <circle cx="${X(pares.length-1)}" cy="${Y(ult)}" r="3.4" fill="${SOL}"/>
+    <circle cx="${X(pares.length-1)}" cy="${Y(ult)}" r="3.4" fill="${col}"/>
   </svg>`;
 }
 
