@@ -156,7 +156,19 @@ footer b{color:var(--tinta);font-weight:600}
 .tuberia{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13.5px;margin-top:9px}
 .tuberia span:last-child{font-family:var(--mono);font-size:12px;color:var(--tenue)}
 .tuberia .pista{grid-column:1/-1;height:5px;background:var(--linea);margin-bottom:5px}
-.tuberia .pista i{display:block;height:100%}
+".tuberia .pista i{display:block;height:100%}
+.fondoFila.fijo{fill:var(--focoSuave)}
+.dona{display:flex;gap:13px;align-items:center;margin-top:13px}
+.donaSvg{flex:0 0 106px;width:106px;height:106px}
+.donaSvg text{font-family:var(--mono);text-anchor:middle}
+.donaSvg .dc{font-size:19px;font-weight:600;fill:var(--tinta)}
+.donaSvg .dl{font-size:8px;letter-spacing:.09em;fill:var(--tenue)}
+.leyDona{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.leyDona div{display:grid;grid-template-columns:9px 1fr auto;gap:1px 7px;align-items:baseline}
+.leyDona i{width:9px;height:9px;border-radius:1px;align-self:center}
+.leyDona span{font-size:11.5px;line-height:1.2}
+.leyDona b{font-family:var(--mono);font-size:11px;font-weight:600;white-space:nowrap}
+.leyDona u{grid-column:2/-1;text-decoration:none;font-family:var(--mono);font-size:10px;color:var(--tenue)}
 body.vSolar{--foco:#0B6E6B;--focoSuave:rgba(11,110,107,.10)}
 body.vSolar .repartos b{font-size:20px}
 body.vSolar .repartos span{line-height:1.35;display:block}
@@ -246,6 +258,29 @@ const SOLAR = {
     serie:[[2013,10],[2014,224],[2015,600],[2016,1120],[2017,1894],[2018,2336],
            [2019,2691],[2020,3275],[2021,4615],[2022,6626],[2023,8702],
            [2024,10628],[2025,11903],[2026,12595]]
+  },
+  /* Mezcla tecnológica por región, en MW. La solar FV, la eólica y el resto se
+     midieron sobre la Figura 7 del boletín ACERA de julio 2026 (barras apiladas,
+     sin tabla publicada) y se calibraron para que la suma nacional de solar FV
+     coincida con los 12.595 MW de la Tabla 3. El corte utility/PMGD aplica la
+     participación solar del PMGD (~80%) sobre el PMGD regional de marzo 2026. */
+  mix:{
+    15 :{ernc:184, fv:157, util:157, pmgd:0, eol:0, mh:12, bio:0, otr:15},
+    1  :{ernc:639, fv:639, util:639, pmgd:0, eol:0, mh:0, bio:0, otr:0},
+    2  :{ernc:7596, fv:4481, util:4481, pmgd:0, eol:2488, mh:0, bio:0, otr:627},
+    3  :{ernc:4036, fv:2941, util:2941, pmgd:0, eol:1084, mh:11, bio:0, otr:0},
+    4  :{ernc:1430, fv:634, util:328, pmgd:306, eol:766, mh:30, bio:0, otr:0},
+    5  :{ernc:723, fv:723, util:372, pmgd:351, eol:0, mh:0, bio:0, otr:0},
+    13 :{ernc:1163, fv:1080, util:520, pmgd:560, eol:0, mh:83, bio:0, otr:0},
+    6  :{ernc:866, fv:606, util:170, pmgd:436, eol:169, mh:80, bio:11, otr:0},
+    7  :{ernc:982, fv:834, util:401, pmgd:433, eol:0, mh:109, bio:39, otr:0},
+    16 :{ernc:388, fv:288, util:99, pmgd:189, eol:0, mh:30, bio:69, otr:1},
+    8  :{ernc:1256, fv:206, util:0, pmgd:206, eol:648, mh:50, bio:350, otr:2},
+    9  :{ernc:1049, fv:9, util:9, pmgd:0, eol:871, mh:89, bio:71, otr:9},
+    14 :{ernc:136, fv:0, util:0, pmgd:0, eol:0, mh:68, bio:59, otr:9},
+    10 :{ernc:483, fv:0, util:0, pmgd:0, eol:374, mh:98, bio:0, otr:11},
+    11 :{ernc:24, fv:0, util:0, pmgd:0, eol:0, mh:11, bio:0, otr:13},
+    12 :{ernc:16, fv:0, util:0, pmgd:0, eol:0, mh:0, bio:0, otr:16}
   },
   reg:{
     15:{mw:184,  pct:0.88,  centrales:null, nb:[4.5,275],     pmgd:null, recorte:35,
@@ -357,7 +392,7 @@ const MX=10, MY=22;                 // origen del mapa
 const FX=244, FW=VW-FX-12;          // franja de filas
 const FY=24, FH=61;                 // alto de cada fila
 const CERO=524, ESC=25.5;           // x del cero y px por punto porcentual (vista global)
-const BASE=372, ANCHO=296, TOPE=8000; // origen, ancho útil y tope de escala (vista solar)
+const BASE=372, ANCHO=296, TOPE=5000; // origen, ancho útil y tope de escala (vista solar)
 
 const svg=document.getElementById('vista');
 const detalle=document.getElementById('detalle');
@@ -382,7 +417,9 @@ const tono=v=>{                       // divergente, vista global
   return v>=0 ? mezcla('#E4EBEA','#0B6E6B',t) : mezcla('#EFE2E6','#A32A4E',t);
 };
 const tinte=v=>v>=0?'#0B6E6B':'#A32A4E';
-const SOLMAX=Math.max(...Object.values(SOLAR.reg).map(s=>s.mw));
+const mix=r=>SOLAR.mix[r.cod];
+const SOLMAX=Math.max(...Object.values(SOLAR.mix).map(m=>m.fv));
+const FV_PAIS=Object.values(SOLAR.mix).reduce((a,m)=>a+m.fv,0);
 const tonoSol=v=>{                    // secuencial, vista solar
   const t=Math.pow(Math.min(v/SOLMAX,1),0.5);
   return t<=0.5 ? mezcla('#F3EAD8','#E0A040',t*2) : mezcla('#E0A040','#8F4A0E',(t-0.5)*2);
@@ -405,10 +442,36 @@ const impulso=r=>{
 };
 
 const sol=r=>SOLAR.reg[r.cod];
-const rangoSol=(()=>{                 // ranking de capacidad por región
-  const o=Object.entries(SOLAR.reg).sort((a,b)=>b[1].mw-a[1].mw), m={};
+const rangoSol=(()=>{                 // ranking de capacidad solar FV por región
+  const o=Object.entries(SOLAR.mix).sort((a,b)=>b[1].fv-a[1].fv), m={};
   o.forEach(([k],i)=>m[k]=i+1); return m;
 })();
+
+/* ---------- gráfico de dona ---------- */
+const PAL={util:'#BE7418', pmgd:'#E8B968', eol:'#0B6E6B', otr:'#93A2AB'};
+function dona(partes){
+  const cx=53, cy=53, Re=48, ri=30, tot=partes.reduce((a,p)=>a+p.v,0);
+  if(!tot) return '';
+  const vis=partes.filter(p=>p.v>0);
+  let out='';
+  if(vis.length===1){
+    out=`<circle cx="${cx}" cy="${cy}" r="${(Re+ri)/2}" fill="none"
+          stroke="${vis[0].c}" stroke-width="${Re-ri}"/>`;
+  } else {
+    let a=-Math.PI/2;
+    vis.forEach(p=>{
+      const b=a+p.v/tot*2*Math.PI, gr=(b-a)>Math.PI?1:0;
+      const P=(rad,ang)=>[(cx+rad*Math.cos(ang)).toFixed(2),(cy+rad*Math.sin(ang)).toFixed(2)];
+      const [xa,ya]=P(Re,a),[xb,yb]=P(Re,b),[xc,yc]=P(ri,b),[xd,yd]=P(ri,a);
+      out+=`<path d="M${xa} ${ya}A${Re} ${Re} 0 ${gr} 1 ${xb} ${yb}L${xc} ${yc}A${ri} ${ri} 0 ${gr} 0 ${xd} ${yd}Z" fill="${p.c}"/>`;
+      a=b;
+    });
+  }
+  const fv=partes.filter(p=>p.k==='util'||p.k==='pmgd').reduce((a,p)=>a+p.v,0);
+  return `<svg class="donaSvg" viewBox="0 0 106 106" aria-hidden="true">${out}
+    <text class="dc" x="53" y="52">${Math.round(fv/tot*100)}%</text>
+    <text class="dl" x="53" y="64">SOLAR FV</text></svg>`;
+}
 
 /* ============================================================
    DEFINICIÓN DE LAS DOS VISTAS
@@ -491,29 +554,29 @@ solar:{
   titulo:'Capacidad renovable y solar por región · Chile',
   rotulo:'Monitor fotovoltaico · Chile',
   h1:'Matriz renovable<br><em>por región</em>',
-  bajada:'La barra mide la capacidad ERNC y de almacenamiento instalada a julio de 2026. En Arica, Tarapacá, Antofagasta y Atacama esa cifra es casi enteramente solar FV; hacia el sur pesan la eólica y la biomasa, y lo fotovoltaico entra por PMGD y Net Billing.',
-  meta:()=>`16 regiones<br>Corte: <b>${SOLAR.corte}</b><br>Capacidad instalada, MW`,
-  aria:'Mapa de Chile con la capacidad renovable instalada por región',
-  ejeRot:'MW INSTALADOS',
-  ticks:[0,2000,4000,6000,8000],
+  bajada:'La barra mide la capacidad solar fotovoltaica instalada en cada región a julio de 2026: los 12.595 MW del país repartidos territorialmente. El detalle de cada región separa la escala utility del PMGD y la contrasta con la eólica y el resto de la ERNC.',
+  meta:()=>`16 regiones<br>Corte: <b>${SOLAR.corte}</b><br>Capacidad solar FV, MW`,
+  aria:'Mapa de Chile con la capacidad solar fotovoltaica instalada por región',
+  ejeRot:'MW SOLAR FV',
+  ticks:[0,1000,2000,3000,4000,5000],
   tickX:t=>BASE+t*ANCHO/TOPE,
   tickTxt:t=>miles(t),
   tickCero:t=>t===0,
-  escala:`<span>0</span><i style="background:linear-gradient(90deg,#F3EAD8,#E0A040,#8F4A0E)"></i><span>7.600 MW</span>`,
+  escala:`<span>0</span><i style="background:linear-gradient(90deg,#F3EAD8,#E0A040,#8F4A0E)"></i><span>4.500 MW</span>`,
   orden2:'Por capacidad',
   ordenAria:'Orden de las filas',
-  valor:r=>sol(r).mw,
-  mapaFill:r=>tonoSol(sol(r).mw),
+  valor:r=>mix(r).fv,
+  mapaFill:r=>tonoSol(mix(r).fv),
   barra:r=>{
-    const s=sol(r), w=s.mw*ANCHO/TOPE;
+    const w=mix(r).fv*ANCHO/TOPE;
     return {x:BASE, w:Math.max(w,1.2), fill:SOL,
             tx:BASE+Math.max(w,1.2)+7, anc:'start',
-            txt:miles(s.mw)+' MW', col:SOLOSC};
+            txt:miles(mix(r).fv)+' MW', col:SOLOSC};
   },
-  etiqueta:r=>`${r.nombre}, ${miles(sol(r).mw)} megavatios renovables instalados`,
-  pie:'<b>Sobre los datos.</b> La barra corresponde a la capacidad ERNC y de almacenamiento instalada por región (<b>ACERA</b>, Boletín de Estadísticas de julio 2026, Figura 7), que en el norte grande es casi enteramente solar FV. No existe una tabla oficial de MW solar-FV desagregados por las 16 regiones: por eso el detalle se apoya en Net Billing (ACERA, Figura 9, junio 2026), PMGD (marzo 2026) y el catastro de proyectos utility. El n.º de centrales ERNC proviene de la CNE/Coordinador con corte a mayo de 2024, de modo que en algunas regiones no calza con la capacidad de julio de 2026. Los recortes por región se leen de la Figura 5 del boletín, que no publica tabla: van marcados con ≈. El catastro de proyectos utility combina el informe base con prensa sectorial y comunicaciones de los propietarios (Enel Green Power, Engie, Atlas, Grenergy, Opdenergy, AME/EDF), verificadas en septiembre de 2026; las capacidades pueden estar en MWac o MWp según la fuente.',
+  etiqueta:r=>`${r.nombre}, ${miles(mix(r).fv)} megavatios solares fotovoltaicos instalados`,
+  pie:'<b>Sobre los datos.</b> La barra corresponde a la capacidad ERNC y de almacenamiento instalada por región (<b>ACERA</b>, Boletín de Estadísticas de julio 2026, Figura 7), que en el norte grande es casi enteramente solar FV. No existe una tabla oficial de MW solar-FV desagregados por las 16 regiones: por eso el detalle se apoya en Net Billing (ACERA, Figura 9, junio 2026), PMGD (marzo 2026) y el catastro de proyectos utility. El reparto por tecnología de cada región (solar FV, eólica y resto) no está publicado en forma de tabla: se midió sobre las barras apiladas de la Figura 7 y se calibró para que la suma nacional de solar FV coincida con los 12.595 MW de la Tabla 3, con un desvío residual de 0,4% en eólica. El corte entre escala utility y PMGD aplica la participación solar del PMGD (~80%) sobre el PMGD regional de marzo de 2026, disponible solo en siete regiones. El n.º de centrales ERNC proviene de la CNE/Coordinador con corte a mayo de 2024, de modo que en algunas regiones no calza con la capacidad de julio de 2026. Los recortes por región se leen de la Figura 5 del boletín, que no publica tabla: van marcados con ≈. El catastro de proyectos utility combina el informe base con prensa sectorial y comunicaciones de los propietarios (Enel Green Power, Engie, Atlas, Grenergy, Opdenergy, AME/EDF), verificadas en septiembre de 2026; las capacidades pueden estar en MWac o MWp según la fuente.',
   detalle:r=>{
-    const s=sol(r), p=SOLAR.pais;
+    const s=sol(r), m=mix(r);
     const micro=[
       {v:s.centrales!==null?miles(s.centrales):null, e:'centrales ERNC<br>may-2024'},
       {v:s.pmgd!==null?miles(s.pmgd)+'<span class="u">MW</span>':null, e:'PMGD ≤9 MW<br>mar-2026'},
@@ -549,10 +612,10 @@ solar:{
     <p class="sub">Región ${r.romano} · capital ${r.capital}</p>
     <h2>${r.nombre}</h2>
     <div class="granCifra">
-      <b style="color:${SOLOSC}">${miles(s.mw)}</b>
-      <span class="pastilla" style="color:${SOLOSC}">MW · ${dec(s.pct,2)}% país</span>
+      <b style="color:${SOLOSC}">${miles(m.fv)}</b>
+      <span class="pastilla" style="color:${SOLOSC}">MW · ${dec(m.fv/FV_PAIS*100,2)}% país</span>
     </div>
-    <p class="pieCifra">Capacidad ERNC y almacenamiento instalada · ${SOLAR.corte} · ${rangoSol[r.cod]}.º lugar entre 16 regiones.</p>
+    <p class="pieCifra">Solar fotovoltaica instalada · ${SOLAR.corte} · ${rangoSol[r.cod]}.º lugar entre 16 regiones${m.fv?'':' · sin capacidad solar registrada'}.</p>
     <p class="perfil">${s.perfil}</p>
     <div class="micro">${micro}</div>
     ${rec}
@@ -560,12 +623,12 @@ solar:{
     <p class="nota">${s.nota}</p>`;
   },
   inicial:()=>{
-    const g=(...c)=>c.reduce((a,k)=>a+SOLAR.reg[k].mw,0);
-    const tot=Object.values(SOLAR.reg).reduce((a,s)=>a+s.mw,0);
+    const g=(...c)=>c.reduce((a,k)=>a+SOLAR.mix[k].fv,0);
+    const tot=FV_PAIS;
     const norte=g(15,1,2,3), centro=g(4,5,13,6,7), sur=g(16,8,9,14,10,11,12);
     return `<p class="sub">Panorama</p>
     <h2>Elige una región</h2>
-    <p class="vacio">Pasa el cursor por el mapa o por cualquier fila para ver capacidad instalada, generación distribuida y el catastro de proyectos fotovoltaicos de escala utility.</p>
+    <p class="vacio">Pasa el cursor por el mapa o por cualquier fila para ver su capacidad solar, el desglose de su matriz renovable y el catastro de proyectos de escala utility. Haz clic para fijar una región.</p>
     <div class="repartos">
       <div><b style="color:${SOLOSC}">${Math.round(norte/tot*100)}%</b><span>Norte Grande<br>XV · I · II · III</span></div>
       <div><b>${Math.round(centro/tot*100)}%</b><span>Centro<br>IV · V · RM · VI · VII</span></div>
@@ -591,6 +654,32 @@ solar:{
         <div class="pista"><i style="width:${v/mx*100}%;background:${SOL}"></i></div>
       </div>`).join('')}
     <p class="nota">El almacenamiento híbrido asociado a plantas solares suma <b>${miles(p.bessSolarMw)} MW / ${miles(p.bessSolarMwh)} MWh</b> en operación y otros ${miles(p.bessConstrMw)} MW en construcción. La generación distribuida aporta ${miles(p.pmgd)} MW de PMGD y ${miles(p.nbMw)} MW de Net Billing en ${miles(p.nbInst)} instalaciones. En lo que va de 2026 se han recortado ${miles(p.recorteYTD)} GWh renovables.</p>`;
+  },
+  segunda:r=>{
+    const m=mix(r), otras=m.mh+m.bio+m.otr;
+    const partes=[
+      {k:'util', c:PAL.util, n:'Solar FV · utility',  v:m.util},
+      {k:'pmgd', c:PAL.pmgd, n:'Solar FV · PMGD',     v:m.pmgd},
+      {k:'eol',  c:PAL.eol,  n:'Eólica',              v:m.eol},
+      {k:'otr',  c:PAL.otr,  n:'Otras renovables',    v:otras}
+    ];
+    const pc=v=>m.ernc?dec(v/m.ernc*100):'0,0';
+    const filas=partes.filter(p=>p.v>0).map(p=>`<div>
+        <i style="background:${p.c}"></i><span>${p.n}</span><b>${miles(p.v)} MW</b>
+        <u>${pc(p.v)}% de la ERNC regional</u></div>`).join('');
+    const desglose = otras>0
+      ? `Dentro de «otras renovables»: ${[[m.mh,'mini hidro de pasada'],[m.bio,'biomasa'],
+          [m.otr,'termosolar, geotermia y BESS']].filter(x=>x[0]>0)
+          .map(x=>`${miles(x[0])} MW de ${x[1]}`).join(', ')}.`
+      : '';
+    return `<p class="sub">Matriz renovable · ${r.nombre}</p>
+    <div class="granCifra">
+      <b>${miles(m.ernc)}</b>
+      <span class="pastilla">MW ERNC · ${SOLAR.corte}</span>
+    </div>
+    <p class="pieCifra">Capacidad ERNC y almacenamiento instalada en la región.</p>
+    <div class="dona">${dona(partes)}<div class="leyDona">${filas}</div></div>
+    <p class="nota">${desglose} El reparto por tecnología se midió sobre el gráfico regional de ACERA y el corte entre escala utility y PMGD es una estimación: no existe una tabla oficial que los separe por región.</p>`;
   }
 }
 };
@@ -627,6 +716,11 @@ DATA.regiones.forEach((r,i)=>{
   g.addEventListener('pointerenter',()=>marcar(r.cod));
   golpe.addEventListener('pointerenter',()=>marcar(r.cod));
   golpe.addEventListener('focus',()=>marcar(r.cod));
+  g.addEventListener('click',()=>fijar(r.cod));
+  golpe.addEventListener('click',()=>fijar(r.cod));
+  golpe.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); fijar(r.cod); }
+  });
 });
 svg.addEventListener('pointerleave',()=>marcar(null));
 svg.addEventListener('pointerover',ev=>{ if(!ev.target.closest('.region,.golpe')) marcar(null); });
@@ -718,7 +812,7 @@ function aplicarVista(nombre){
   pintarRejilla(v);
   pintarFilas(v);
   if(porValor) transitar(ordenValor[V]);
-  activo=null;
+  activo=null; fijado=null;
   svg.classList.remove('hay');
   for(const k in R){
     const o=R[k];
@@ -730,7 +824,7 @@ function aplicarVista(nombre){
 
 const tGlobal=document.getElementById('tGlobal'), tSolar=document.getElementById('tSolar');
 function elegirPestana(nombre){
-  if(nombre===V) return;
+  if(nombre===V){ soltar(); return; }   // misma pestaña: vuelve a «Elige una región»
   tGlobal.setAttribute('aria-selected',String(nombre==='global'));
   tSolar.setAttribute('aria-selected',String(nombre==='solar'));
   aplicarVista(nombre);
@@ -748,18 +842,34 @@ const bGeo=document.getElementById('bGeo'), bVar=document.getElementById('bVar')
 bGeo.onclick=()=>{porValor=false;bGeo.setAttribute('aria-pressed','true');bVar.setAttribute('aria-pressed','false');transitar(ordenGeo);};
 bVar.onclick=()=>{porValor=true;bVar.setAttribute('aria-pressed','true');bGeo.setAttribute('aria-pressed','false');transitar(ordenValor[V]);};
 
-/* ---------- resaltado ---------- */
-let activo=null;
-function marcar(cod){
-  if(cod===activo) return;
+/* ---------- resaltado y fijación ---------- */
+let activo=null, fijado=null;
+function pintar(cod){
   activo=cod;
   svg.classList.toggle('hay',cod!==null);
   for(const k in R){
     const o=R[k], on=(+k===cod);
     [o.region,o.guia,o.fondo,o.barra,o.nom,o.cifra,o.rom].forEach(n=>n.classList.toggle('on',on));
+    o.fondo.classList.toggle('fijo', fijado!==null && +k===fijado);
+    o.foco.setAttribute('aria-pressed', String(fijado!==null && +k===fijado));
   }
-  if(cod===null) return;
-  detalle.innerHTML=VISTAS[V].detalle(R[cod].r);
+  const v=VISTAS[V];
+  if(cod===null){ detalle.innerHTML=v.inicial(); resumen.innerHTML=v.resumen(); }
+  else { detalle.innerHTML=v.detalle(R[cod].r);
+         resumen.innerHTML=v.segunda ? v.segunda(R[cod].r) : v.resumen(); }
+}
+function marcar(cod){                    // hover: al salir vuelve a la región fijada
+  const destino = cod===null ? fijado : cod;
+  if(destino===activo) return;
+  pintar(destino);
+}
+function fijar(cod){                     // clic: fija o suelta
+  fijado = (fijado===cod) ? null : cod;
+  activo = null;
+  pintar(cod);
+}
+function soltar(){                       // volver al panorama
+  fijado=null; activo=null; pintar(null);
 }
 
 /* ---------- sparklines ---------- */
