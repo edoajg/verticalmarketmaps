@@ -196,6 +196,28 @@ body.vSolar .repartos span,body.vDatos .repartos span{line-height:1.35;display:b
   border:1px dashed currentColor;border-radius:2px;padding:2px 6px}
 .dist.si{color:var(--exp);border-style:solid;font-weight:600}
 
+/* ---------- tooltip de clientes (vista solar) ---------- */
+.tip{position:fixed;left:0;top:0;z-index:20;width:300px;max-width:calc(100vw - 16px);
+  pointer-events:none;background:var(--papel2);border:1.5px solid var(--tinta);
+  box-shadow:0 8px 22px rgba(16,26,34,.18);padding:10px 12px 9px;font-size:12.5px;line-height:1.35}
+.tip[hidden]{display:none}
+.tipCifra{margin:3px 0 7px;font-size:12px;color:var(--tenue)}
+.tipCifra b{font-family:var(--mono);font-weight:600;color:var(--solOsc)}
+.tipLista{list-style:none;margin:0;padding:0;counter-reset:tip}
+.tipLista li{display:grid;grid-template-columns:14px 1fr auto;gap:1px 7px;padding:5px 0;
+  border-top:1px dotted var(--linea);counter-increment:tip}
+.tipLista li::before{content:counter(tip);grid-row:span 3;font-family:var(--mono);font-size:10.5px;color:var(--tenue)}
+.tipLista .t1{font-weight:600}
+.tipLista .t2{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--solOsc);
+  text-align:right;white-space:nowrap}
+.tipLista .t3{grid-column:2/-1;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tenue)}
+.tipLista .t3.si{color:var(--exp);font-weight:600}
+.tipLista .t4{grid-column:2/-1;font-family:var(--mono);font-size:10px;color:var(--sol)}
+.tipPie{margin:5px 0 0;padding-top:6px;border-top:1px solid var(--linea);font-family:var(--mono);
+  font-size:10px;letter-spacing:.04em;color:var(--tenue)}
+.tipVacio{margin:4px 0 0;color:var(--tenue)}
+
 /* ---------- panel: vista datacenters ---------- */
 body.vDatos{--foco:#2E5E8E;--focoSuave:rgba(46,94,142,.10)}
 body.vDatos .obra .on2{color:#1C3A57}
@@ -268,6 +290,8 @@ body.vDatos .obra .on2{color:#1C3A57}
     <section class="tarjeta" id="extra" hidden></section>
   </aside>
 </main>
+
+<div class="tip" id="tip" hidden aria-hidden="true"></div>
 
 <footer>
   <p id="mPie"></p>
@@ -1070,6 +1094,21 @@ const impulso=r=>{
 };
 
 const sol=r=>SOLAR.reg[r.cod];
+
+/* ---------- clientes de una región: tarjeta y tooltip de la vista solar ---------- */
+const nomCli=k=>CLIENTES.g[k]||[k,''];
+const mwTxt=v=>v<10&&v%1?dec(v):miles(v);
+function clientesDe(r){        // CNE + proyectos del catastro que aún no operan, por MW en operación y en obra
+  const lista=CLIENTES.reg[r.cod].top.map(([k,mw,f,pl])=>({k,mw,f,pl,obra:[]}));
+  sol(r).obras.filter(o=>o.k).forEach(o=>{
+    let c=lista.find(x=>x.k===o.k);
+    if(!c){ c={k:o.k,mw:0,f:'',pl:[],obra:[]}; lista.push(c); }
+    c.obra.push(o);
+  });
+  lista.forEach(c=>c.enObra=c.obra.filter(o=>o.e==='co'||o.e==='pr').reduce((a,o)=>a+o.mw,0));
+  return lista.sort((a,b)=>(b.mw+b.enObra)-(a.mw+a.enObra));
+}
+
 const rangoSol=(()=>{                 // ranking de capacidad solar FV por región
   const o=Object.entries(SOLAR.mix).sort((a,b)=>b[1].fv-a[1].fv), m={};
   o.forEach(([k],i)=>m[k]=i+1); return m;
@@ -1312,7 +1351,7 @@ solar:{
     <p class="nota">${desglose} El reparto por tecnología se midió sobre el gráfico regional de ACERA y el corte entre escala utility y PMGD es una estimación: no existe una tabla oficial que los separe por región.</p>`;
   },
   tercera:r=>{                          // clientes: propietarios de las centrales
-    const K=CLIENTES, nom=k=>K.g[k]||[k,''];
+    const K=CLIENTES, nom=nomCli;
     const fuente=`<p class="fuente">CNE · Reporte de Capacidad Instalada de Generación, ${K.corte}. La CNE registra la sociedad dueña de cada central; el paso a grupo económico es elaboración propia y «por confirmar» marca los inferidos de fuentes antiguas o del nombre del SPV.</p>`;
     if(!r){
       const p=K.pais, mx=p.top[0][1];
@@ -1334,22 +1373,12 @@ solar:{
     if(!C.centrales) return `<p class="sub">Clientes principales · ${r.nombre}</p>
       <p class="perfil">La CNE no registra centrales solares en operación en la región.</p>${fuente}`;
 
-    // proyectos del catastro que aún no operan, sumados a su cliente
-    const lista=C.top.map(([k,mw,f,pl])=>({k,mw,f,pl,obra:[]}));
-    sol(r).obras.filter(o=>o.k).forEach(o=>{
-      let c=lista.find(x=>x.k===o.k);
-      if(!c){ c={k:o.k,mw:0,f:'',pl:[],obra:[]}; lista.push(c); }
-      c.obra.push(o);
-    });
-    const enObra=c=>c.obra.filter(o=>o.e==='co'||o.e==='pr').reduce((a,o)=>a+o.mw,0);
-    lista.sort((a,b)=>(b.mw+enObra(b))-(a.mw+enObra(a)));
-
-    const mwTxt=v=>v<10&&v%1?dec(v):miles(v), mx=Math.max(...lista.map(c=>c.mw+enObra(c)));
+    const lista=clientesDe(r), mx=Math.max(...lista.map(c=>c.mw+c.enObra));
     const ETQ={co:['constr','En construcción'], pr:['constr','En pruebas'], rca:['rca','RCA aprobada'], ev:['rca','En calificación']};
     const CUPO=5;
     const filas=lista.map((c,i)=>{
       const [n,m]=nom(c.k), tipo=c.k.slice(0,2), vis=c.pl.slice(0,CUPO), mas=c.pl.slice(CUPO);
-      const obra=enObra(c), d=DISTRIB[r.cod+':'+c.k];
+      const obra=c.enObra, d=DISTRIB[r.cod+':'+c.k];
       const chips=(tipo==='f:'?'<span class="chip rca">Serie de SPV · matriz por identificar</span>':'')
                  +(tipo==='s:'?'<span class="chip rca">Sin grupo identificado</span>':'')
                  +(c.f==='p'?'<span class="chip est">Grupo por confirmar</span>':'')
@@ -1378,6 +1407,21 @@ solar:{
     ${filas}
     ${C.resto[0]?`<p class="restoObras">+ ${C.resto[0]} clientes menores · ${C.resto[1]} centrales · ${mwTxt(C.resto[2])} MW</p>`:''}
     ${fuente}`;
+  },
+  tip:r=>{                              // tooltip al pasar el cursor: cinco mayores clientes
+    const C=CLIENTES.reg[r.cod];
+    const cab=`<p class="sub">Región ${r.romano} · ${r.nombre}</p>`;
+    if(!C.centrales) return cab+'<p class="tipVacio">La CNE no registra centrales solares en operación.</p>';
+    const lista=clientesDe(r), vis=lista.slice(0,5);
+    const total=C.clientes+lista.filter(c=>!c.pl.length).length;
+    const conDist=Object.keys(DISTRIB).filter(k=>k.startsWith(r.cod+':')).length;
+    return cab+`<p class="tipCifra"><b>${miles(C.mw)} MW</b> en operación (CNE) · ${miles(total)} clientes<br>${conDist} de ${miles(total)} con distribuidor asignado</p>
+    <ol class="tipLista">${vis.map(c=>{
+      const d=DISTRIB[r.cod+':'+c.k];
+      return `<li><span class="t1">${nomCli(c.k)[0]}</span><span class="t2">${c.mw?mwTxt(c.mw)+' MW':'—'}</span>
+        ${c.enObra?`<span class="t4">+${miles(c.enObra)} MW en obra</span>`:''}<span class="t3${d?' si':''}">Distribuidor · ${d||'sin asignar'}</span></li>`;
+    }).join('')}</ol>
+    <p class="tipPie">${total>vis.length?`+ ${total-vis.length} más · `:''}clic para ver el detalle</p>`;
   }
 },
 
@@ -1577,14 +1621,32 @@ DATA.regiones.forEach((r,i)=>{
   g.addEventListener('pointerenter',()=>marcar(r.cod));
   golpe.addEventListener('pointerenter',()=>marcar(r.cod));
   golpe.addEventListener('focus',()=>marcar(r.cod));
+  [g,golpe].forEach(n=>n.addEventListener('pointermove',ev=>mostrarTip(r.cod,ev)));
   g.addEventListener('click',()=>fijar(r.cod));
   golpe.addEventListener('click',()=>fijar(r.cod));
   golpe.addEventListener('keydown',ev=>{
     if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); fijar(r.cod); }
   });
 });
-svg.addEventListener('pointerleave',()=>marcar(null));
-svg.addEventListener('pointerover',ev=>{ if(!ev.target.closest('.region,.golpe')) marcar(null); });
+svg.addEventListener('pointerleave',()=>{ marcar(null); ocultarTip(); });
+svg.addEventListener('pointerover',ev=>{ if(!ev.target.closest('.region,.golpe')){ marcar(null); ocultarTip(); } });
+addEventListener('scroll',()=>ocultarTip(),{passive:true});
+
+/* ---------- tooltip: solo con mouse y en las vistas que lo definen (solar) ---------- */
+const tip=document.getElementById('tip');
+let tipCod=null;
+function mostrarTip(cod,ev){
+  const v=VISTAS[V];
+  if(!v.tip||ev.pointerType!=='mouse'){ ocultarTip(); return; }
+  if(cod!==tipCod){ tip.innerHTML=v.tip(R[cod].r); tipCod=cod; }
+  tip.hidden=false;
+  const m=16, w=tip.offsetWidth, h=tip.offsetHeight;
+  let x=ev.clientX+m, y=ev.clientY+m;
+  if(x+w>innerWidth-8) x=ev.clientX-m-w;        // sin espacio a la derecha: al otro lado del cursor
+  if(y+h>innerHeight-8) y=innerHeight-8-h;      // ni abajo: apoyado en el borde inferior
+  tip.style.left=Math.max(8,x)+'px'; tip.style.top=Math.max(8,y)+'px';
+}
+function ocultarTip(){ tip.hidden=true; tipCod=null; }
 
 /* ---------- posicionamiento de filas y guías ---------- */
 function trazoGuia(r,y){
@@ -1675,6 +1737,7 @@ function aplicarVista(nombre){
   pintarFilas(v);
   if(porValor) transitar(ordenValor[V]);
   activo=null; fijado=null;
+  ocultarTip();
   svg.classList.remove('hay');
   for(const k in R){
     const o=R[k];
