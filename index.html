@@ -156,7 +156,7 @@ footer b{color:var(--tinta);font-weight:600}
 .tuberia{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13.5px;margin-top:9px}
 .tuberia span:last-child{font-family:var(--mono);font-size:12px;color:var(--tenue)}
 .tuberia .pista{grid-column:1/-1;height:5px;background:var(--linea);margin-bottom:5px}
-".tuberia .pista i{display:block;height:100%}
+.tuberia .pista i{display:block;height:100%}
 .fondoFila.fijo{fill:var(--focoSuave)}
 .dona{display:flex;gap:13px;align-items:center;margin-top:13px}
 .donaSvg{flex:0 0 106px;width:106px;height:106px}
@@ -172,6 +172,29 @@ footer b{color:var(--tinta);font-weight:600}
 body.vSolar{--foco:#0B6E6B;--focoSuave:rgba(11,110,107,.10)}
 body.vSolar .repartos b,body.vDatos .repartos b{font-size:20px}
 body.vSolar .repartos span,body.vDatos .repartos span{line-height:1.35;display:block}
+
+/* ---------- panel: clientes solares ---------- */
+.cli{display:grid;grid-template-columns:18px 1fr auto;gap:1px 8px;padding:10px 0;
+  border-bottom:1px dotted var(--linea)}
+.cli:last-of-type{border-bottom:0}
+.cliN{font-family:var(--mono);font-size:11px;color:var(--tenue);padding-top:2px}
+.cli1{font-size:14px;font-weight:600;line-height:1.3}
+.cli1 small,.tuberia small{font-weight:400;font-size:11px;color:var(--tenue)}
+.cli2{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--solOsc);
+  text-align:right;white-space:nowrap}
+.cli3{grid-column:2/-1;font-size:11.5px;color:var(--tenue);line-height:1.4}
+.cli3 .chip{margin-left:0;margin-right:5px}
+.cli .pista{grid-column:2/-1;height:4px;background:var(--linea);margin:5px 0 3px}
+.cli .pista i{display:block;height:100%;background:var(--sol)}
+.pls{grid-column:2/-1;list-style:none;margin:3px 0 0;padding:0}
+.pls li{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px;line-height:1.3;padding:2px 0}
+.pls li u{text-decoration:none;color:var(--tenue);font-size:11px;white-space:nowrap}
+.pls li b{font-family:var(--mono);font-size:11px;font-weight:600;white-space:nowrap}
+.pls li.mas{display:block;font-family:var(--mono);font-size:10.5px;color:var(--tenue)}
+.dist{grid-column:2/-1;justify-self:start;margin:7px 0 0;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--tenue);
+  border:1px dashed currentColor;border-radius:2px;padding:2px 6px}
+.dist.si{color:var(--exp);border-style:solid;font-weight:600}
 
 /* ---------- panel: vista datacenters ---------- */
 body.vDatos{--foco:#2E5E8E;--focoSuave:rgba(46,94,142,.10)}
@@ -310,13 +333,13 @@ const SOLAR = {
         perfil:'Prácticamente toda su ERNC es solar FV: no hay eólica ni biomasa de peso.',
         nota:'Tiene la mayor irradiancia del país, pero su bajo peso nacional (0,9%) responde al tamaño de la red local, no al recurso. Engie opera aquí dos plantas pequeñas —Pampa Camarones (6,2 MW) y El Águila—; la ampliación aprobada de Pampa Camarones casi triplicaría por sí sola la ERNC regional.',
         obras:[
-          {n:'Pampa Camarones · ampliación', c:'Arica – Camarones', mw:300, p:'Engie', a:'RCA aprobada 2022', e:'rca', b:'180 MW · 5 h'}]},
+          {n:'Pampa Camarones · ampliación', c:'Arica – Camarones', mw:300, p:'Engie', a:'RCA aprobada 2022', e:'rca', b:'180 MW · 5 h', k:'engie'}]},
     1:{ mw:639,  pct:3.05,  centrales:15,   nb:[3.5,233],     pmgd:null, recorte:70,
         perfil:'Solar FV dominante, concentrada en pocas centrales de gran tamaño.',
         nota:'El 100% de su cartera en calificación ambiental es solar. Atacama Solar y Granja Solar suman ~250 MW, pero ninguna incorpora almacenamiento.',
         obras:[
-          {n:'Atacama Solar',  c:'Pica',         mw:150, p:'Sonedix', a:'~2020', e:'op'},
-          {n:'Granja Solar',   c:'Pozo Almonte', mw:100, p:'—',       a:'~2020', e:'op'}]},
+          {n:'Atacama Solar',  c:'Pica',         mw:150, p:'Sonnedix', a:'~2020', e:'op'},
+          {n:'Granja Solar',   c:'Pozo Almonte', mw:100, p:'Solarpack → Copec (2024)', a:'2020', e:'op'}]},
     2:{ mw:7596, pct:36.22, centrales:53,   nb:[6.2,1938],    pmgd:null, recorte:1190,
         perfil:'Solar FV mayoritaria, más eólica, la única termosolar del país y el grueso del BESS nacional.',
         nota:'Concentra el 36% de toda la ERNC de Chile. Aquí está la mayor planta FV del país (CEME1, 480 MW) y los dos mayores híbridos FV+BESS en construcción. También es donde más energía se vierte.',
@@ -330,12 +353,12 @@ const SOLAR = {
           {n:'Cerro Dominador (FV + CSP)',   c:'María Elena', mw:210, p:'Grupo Cerro',                        a:'2018 · 2021', e:'op', b:'térmico 17,5 h'},
           {n:'PV Coya',                      c:'María Elena', mw:181, p:'Engie Chile',                        a:'2023',    e:'op', b:'139 MW / 638 MWh'},
           {n:'Sol de Lila',                  c:'Antofagasta', mw:161, p:'Enel Green Power',                   a:'2022',    e:'op'},
-          {n:'Bolero',                       c:'Sierra Gorda',mw:147, p:'Enel Green Power',                   a:'2018',    e:'op'},
+          {n:'Bolero',                       c:'Sierra Gorda',mw:147, p:'EDF + Marubeni → AES Andes (2023)',  a:'2018',    e:'op'},
           {n:'Tamaya',                       c:'Tocopilla',   mw:114, p:'Engie Chile',                        a:'2022',    e:'op', b:'68 MW / 418 MWh'},
           {n:'Pampa Tigre',                  c:'Antofagasta', mw:100, p:'Mainstream (Andes Renovables)',      a:'2022',    e:'op'},
           {n:'Capricornio',                  c:'Antofagasta', mw:88,  p:'Engie Chile',                        a:'2023',    e:'op', b:'48 MW / 264 MWh'},
-          {n:'PFV+BESS Cristales',           c:'—',           mw:400, p:'AES Andes',                          a:'en obra', e:'co', b:'340 MW / 1.360 MWh'},
-          {n:'Proyecto Híbrido Pampas',      c:'—',           mw:348, p:'AES Andes',                          a:'en obra', e:'co', b:'340 MW / 1.360 MWh'}]},
+          {n:'PFV+BESS Cristales',           c:'—',           mw:400, p:'AES Andes',                          a:'en obra', e:'co', b:'340 MW / 1.360 MWh', k:'aes'},
+          {n:'Proyecto Híbrido Pampas',      c:'—',           mw:348, p:'AES Andes',                          a:'en obra', e:'co', b:'340 MW / 1.360 MWh', k:'aes'}]},
     3:{ mw:4036, pct:19.25, centrales:47,   nb:[7.8,2440],    pmgd:null, recorte:775,
         perfil:'Solar FV mayoritaria con eólica creciente; cuna de las primeras plantas utility del país.',
         nota:'Irradiancia de 8,5–9 kWh/m²/día, la mayor del planeta. Aquí partió la escala utility en Chile con Luz del Norte (2016) y El Romero (2017), y hoy alberga Guanchoi (398 MW), la segunda planta FV más grande del país. Casi ninguna de sus plantas históricas incorpora almacenamiento.',
@@ -369,7 +392,7 @@ const SOLAR = {
         perfil:'Arquetipo del modelo distribuido: muchas centrales pequeñas conectadas en redes de distribución.',
         nota:'106 centrales ERNC y 545 MW de PMGD, el segundo del país. Alcones está en pruebas y sería su primera planta solar de escala utility: hasta ahora toda la fotovoltaica regional era de ≤9 MW junto a los centros de consumo.',
         obras:[
-          {n:'Alcones', c:'Marchigüe', mw:90, p:'Opdenergy', a:'en pruebas 2026', e:'pr', b:'90 MW / 500 MWh'}]},
+          {n:'Alcones', c:'Marchigüe', mw:90, p:'Opdenergy', a:'en pruebas 2026', e:'pr', b:'90 MW / 500 MWh', k:'opdenergy'}]},
     7:{ mw:982,  pct:4.68,  centrales:96,   nb:[78.2,5233],   pmgd:541,  recorte:55,
         perfil:'Mini hidro, biomasa y PMGD solar, más la mayor planta fotovoltaica del sur del país.',
         nota:'Gran Teno (200 MWac / 241 MWp) desmiente que el Maule crezca solo con generación distribuida, aunque el PMGD aún suma 541 MW. Grenergy la hibridará con baterías dentro de su plataforma Central Oasis, que añade Tamango (49 MW, en operación) y Planchón (108 MW) repartidos entre el Maule y el Biobío.',
@@ -385,7 +408,7 @@ const SOLAR = {
         perfil:'Dominada por biomasa forestal y eólica; lo solar entra por PMGD y autoconsumo.',
         nota:'1.256 MW de ERNC, pero la fotovoltaica es hoy minoritaria: 307 MW de PMGD y 3.373 instalaciones Net Billing frente a un parque de biomasa asociado a la industria forestal. Monte Águila, en construcción en Cabrero desde octubre de 2025, será su primera planta solar de escala utility.',
         obras:[
-          {n:'Monte Águila', c:'Cabrero', mw:342, p:'Grenergy Renovables', a:'conexión 2027', e:'co', b:'1.034 MWh'}]},
+          {n:'Monte Águila', c:'Cabrero', mw:342, p:'Grenergy Renovables', a:'conexión 2027', e:'co', b:'1.034 MWh', k:'grenergy'}]},
     9:{ mw:1049, pct:5.00,  centrales:27,   nb:[15.6,1953],   pmgd:null, recorte:70,
         perfil:'ERNC casi enteramente eólica y de biomasa, concentrada en pocas centrales grandes.',
         nota:'Su vertimiento es eólico, no solar. Aun así, el 100% de su cartera en calificación ambiental es fotovoltaica (~223 MW), lo que anticipa un cambio de perfil.',
@@ -408,6 +431,329 @@ const SOLAR = {
         obras:[]}
   }
 };
+
+/* ============================================================
+   CLIENTES SOLARES · propietarios de las centrales por región
+   Fuente: CNE, Reporte de Capacidad Instalada de Generación (oct-2026),
+   hoja «base»: sociedad titular, región, comuna, potencia neta y
+   medio de generación de cada central solar en operación.
+   El bloque lo escribe generar_clientes_solar.py: no editarlo a mano.
+   · g: clave → [nombre, matriz]. Prefijo «f:» = serie de SPV con
+     nombre común y matriz por identificar; «s:» = sociedad titular
+     sin grupo identificado.
+   · reg[cod].top: [clave, MW, 'p' si el grupo está por confirmar,
+     [[central, comuna, MW, año, PMGD 1/0], …]], ordenado por MW.
+   ============================================================ */
+/* >>> CLIENTES · generado por generar_clientes_solar.py a partir de CNE_Capacidad_Instalada_Generacion_2026-10.xlsx */
+const CLIENTES = {
+  corte:'oct-2026',
+  pais:{mw:12765.6, centrales:762, titulares:674, clientes:475,
+    top:[['enel',1898.3,34,[2,3,4,13,6,7,16]],['sonnedix',760.3,21,[1,2,3,4,5,13,6,7,16]],['aes',643.3,7,[2,13]],['atlas',591.3,4,[2,3,13]],['metlen',530,4,[15,2,3,4]],['grenergy',509.9,41,[2,3,4,5,13,6,7]],['acciona',507.7,4,[2,3]],['gm',493.9,2,[2,13]],['engie',437.9,6,[15,2,3]],['contour',383.9,3,[1,2]]]},
+  g:{
+    acciona:['Acciona Energía',''],
+    actis:['Actis',''],
+    aes:['AES Andes','AES Corp.'],
+    andesren:['Andes Renovables','Mainstream'],
+    atlas:['Atlas Renewable Energy',''],
+    cerro:['Grupo Cerro','Cerro Dominador'],
+    colbun:['Colbún',''],
+    contour:['ContourGlobal','KKR'],
+    copec:['Copec',''],
+    cvcdif:['CVC DIF',''],
+    cve:['CVE',''],
+    enel:['Enel Green Power','Enel Chile'],
+    enfragen:['EnfraGen','Prime Energía'],
+    engie:['Engie Chile',''],
+    enlasa:['Enlasa',''],
+    farmdo:['Farmdo Energy',''],
+    gm:['Generadora Metropolitana','AME + EDF'],
+    grenergy:['Grenergy',''],
+    innergex:['Innergex',''],
+    metlen:['Metlen','ex Mytilineos'],
+    naturgy:['Naturgy','GPG'],
+    opdenergy:['Opdenergy',''],
+    pacific:['Pacific Hydro','SPIC'],
+    pattern:['Pattern Energy',''],
+    reden:['Reden',''],
+    repsol:['Repsol · Ibereólica',''],
+    rijn:['Rijn Capital',''],
+    sojitz:['Sojitz','con Shikoku y Eiffage'],
+    solarpack:['Solarpack',''],
+    solek:['Solek',''],
+    sonnedix:['Sonnedix','J.P. Morgan AM'],
+    toesca:['Toesca',''],
+    total:['TotalEnergies','TSGF, 50%'],
+    weg:['WEG Capital','fondo WEG-4'],
+    xelio:['X-Elio',''],
+    'f:andina-solar':['Serie «Andina Solar»',''],
+    'f:blue-solar':['Serie «Blue Solar»',''],
+    'f:ee-arboles':['Serie «Empresa Eléctrica»',''],
+    'f:pfv-aves':['Serie «PFV + ave»',''],
+    'f:psf':['Serie «PSF»',''],
+    'f:solar-ti':['Serie «Solar TI»',''],
+    'f:sunlight':['Serie «Sunlight»',''],
+    'f:tedlar':['Serie «Tedlar»',''],
+    'f:verano':['Serie «de Verano»','originadas por Verano Energy; parte de la cartera se vendió a Matrix Renewables'],
+    's:alto-cautin':['Alto Cautín SpA',''],
+    's:amanecer-solar':['Amanecer Solar SpA',''],
+    's:andromeda-solar':['Andrómeda Solar SpA',''],
+    's:angol-solar-i':['Angol Solar I SpA',''],
+    's:apolo-solar':['Apolo Solar SpA',''],
+    's:baobab-energias-renovables':['Baobab Energías Renovables SpA',''],
+    's:belen-solar':['Belén Solar SpA',''],
+    's:bepatagonia-generacion':['Bepatagonia Generación S.A.',''],
+    's:bulnes-solar':['Bulnes Solar SpA',''],
+    's:cabrero-solar':['Cabrero Solar SpA',''],
+    's:canelillo-solar':['Canelillo Solar SpA',''],
+    's:chapiquina-solar':['Chapiquina Solar SpA',''],
+    's:cipres':['Ciprés SpA',''],
+    's:cocharcas-solar':['Cocharcas Solar SpA',''],
+    's:don-arturo':['Don Arturo SpA',''],
+    's:don-esteban':['Don Esteban SpA',''],
+    's:edelaysen':['Edelaysen',''],
+    's:el-olivar-solar':['El Olivar Solar SpA',''],
+    's:el-peral':['El Peral SpA',''],
+    's:energia-cerro-el-morado':['Energía Cerro el Morado S.A.',''],
+    's:enlight-investments':['Enlight Investments SpA',''],
+    's:generadora-sol-soliv':['Generadora Sol Soliv SpA',''],
+    's:genova-solar':['Génova Solar SpA',''],
+    's:juan-solar':['Juan Solar SpA',''],
+    's:larqui-solar':['Larqui Solar SpA',''],
+    's:las-chilcas-solar':['Las Chilcas Solar SpA',''],
+    's:lirios-de-chumaquito':['Lirios de Chumaquito SpA',''],
+    's:litoral-solar':['Litoral Solar SpA',''],
+    's:los-sauces-solar-i':['Los Sauces Solar I SpA',''],
+    's:los-sauces-solar-ii':['Los Sauces Solar II SpA',''],
+    's:meli':['Meli SpA',''],
+    's:millaray-fotovoltaica':['Millaray Fotovoltaica SpA',''],
+    's:montejo-energia':['Montejo Energía SpA',''],
+    's:nain-solar':['Nain Solar SpA',''],
+    's:parque-solar-benavente':['Parque Solar Benavente SpA',''],
+    's:parque-solar-el-trigal':['Parque Solar el Trigal SpA',''],
+    's:parque-solar-lo-chacon':['Parque Solar Lo Chacón SpA',''],
+    's:parque-solar-los-puquios':['Parque Solar los Puquios SpA',''],
+    's:parque-solar-pueblo-seco':['Parque Solar Pueblo Seco SpA',''],
+    's:parque-solar-quilmo':['Parque Solar Quilmo SpA',''],
+    's:parque-solar-san-isidro':['Parque Solar San Isidro SpA',''],
+    's:parque-solar-villa-longavi':['Parque Solar Villa Longaví SpA',''],
+    's:pataguilla-solar':['Pataguilla Solar SpA',''],
+    's:pedro-solar':['Pedro Solar SpA',''],
+    's:pfv-ayla-solar':['PFV Ayla Solar SpA',''],
+    's:planta-solar-aguas-claras':['Planta Solar Aguas Claras SpA',''],
+    's:planta-solar-lo-miguel-ii':['Planta Solar Lo Miguel II SpA',''],
+    's:pozo-almonte-solar-1':['Pozo Almonte Solar 1 SpA',''],
+    's:ravenna-solar':['Ravenna Solar SpA',''],
+    's:rucasol':['Rucasol SpA',''],
+    's:santa-barbara-energy':['Santa Barbara Energy SpA',''],
+    's:santa-elvira-energy':['Santa Elvira Energy SpA',''],
+    's:santa-laura-energy':['Santa Laura Energy SpA',''],
+    's:sao-paulo-solar':['Sao Paulo Solar SpA',''],
+    's:sociedad-energias-renovables-el-alamo':['Sociedad Energías Renovables el Álamo SpA',''],
+    's:sol-del-sur-15':['Sol del Sur 15 SpA',''],
+    's:solar-del-bueno':['Solar del Bueno SpA',''],
+    's:sur-solar':['Sur Solar SpA',''],
+    's:suvan-solar':['Suvan Solar SpA',''],
+    's:tamarama':['Tamarama SpA',''],
+    's:tamarugal-solar-1':['Tamarugal Solar 1 S.A.',''],
+    's:taruca-solar':['Taruca Solar SpA',''],
+    's:tierra-solar':['Tierra Solar SpA',''],
+    's:venezia-solar':['Venezia Solar SpA',''],
+    's:xue-solar':['Xue Solar SpA','']
+  },
+  reg:{
+    15:{mw:144.9, centrales:8, clientes:7,
+     top:[
+      ['metlen',98,'',[['Willka','Arica',98,2024,0]]],
+      ['s:chapiquina-solar',9,'',[['Arica','Arica',9,2023,1]]],
+      ['s:las-chilcas-solar',9,'',[['Las Chilcas','Arica',9,2024,1]]],
+      ['s:parque-solar-benavente',9,'',[['PVP Chinchorro','Arica',9,2025,1]]],
+      ['s:taruca-solar',9,'',[['Taruca','Arica',9,2025,1]]],
+      ['engie',8.2,'',[['Pampa Camarones','Camarones',6.2,2016,0],['El Aguila','Arica',2,2018,0]]],
+      ['s:el-peral',2.7,'',[['Lluta Solar','Arica',2.7,2024,1]]]],
+     resto:[0,0,0]},
+    1:{mw:607.1, centrales:14, clientes:12,
+     top:[
+      ['contour',179.9,'',[['Victor Jara','Pozo Almonte',179.9,2026,0]]],
+      ['sonnedix',150.6,'',[['Atacama Solar II','Pica',150,2021,0],['Pica','Pica',0.6,2016,1]]],
+      ['copec',109.6,'',[['Granja Solar','Pozo Almonte',109.6,2020,0]]],
+      ['sojitz',88.1,'p',[['Huatacondo','Pozo Almonte',88.1,2019,0]]],
+      ['s:enlight-investments',25.1,'',[['La Huayca II','Pozo Almonte',25.1,2018,0]]],
+      ['solarpack',23.5,'p',[['Pozo Almonte Solar III','Pozo Almonte',16,2014,0],['Pozo Almonte Solar II','Pozo Almonte',7.5,2014,0]]],
+      ['s:tamarugal-solar-1',9,'',[['Bellavista 1','Pozo Almonte',9,2019,1]]],
+      ['s:pozo-almonte-solar-1',9,'',[['PAS1','Pozo Almonte',9,2015,1]]],
+      ['s:andromeda-solar',5.7,'',[['Andrómeda Solar','Alto Hospicio',5.7,2025,1]]],
+      ['s:parque-solar-los-puquios',3,'',[['Los Puquios','Pozo Almonte',3,2015,1]]],
+      ['s:baobab-energias-renovables',3,'',[['Tamarugo','Pozo Almonte',3,2021,1]]],
+      ['cve',0.8,'',[['Macarena Solar','Pozo Almonte',0.8,2023,1]]]],
+     resto:[0,0,0]},
+    2:{mw:4799.8, centrales:59, clientes:37,
+     top:[
+      ['enel',867.7,'',[['Finis Terrae','María Elena',241.4,2017,0],['Las Salinas','Sierra Gorda',198.2,2024,0],['Valle del Sol','María Elena',149.6,2023,0],['Sol de Lila','San Pedro de Atacama',149.2,2022,0],['Azabache','Calama',58.1,2022,0],['Lalackama','Taltal',54.8,2015,0],['Lalackama II','Taltal',16.5,2015,0]]],
+      ['aes',642.5,'',[['Andes Solar III','Antofagasta',153.2,2026,0],['Andes Solar II-B','Antofagasta',129.7,2023,0],['Andes Solar IV','Antofagasta',129.7,2024,0],['Bolero','Sierra Gorda',122,2018,0],['Andes Solar II','Antofagasta',86.3,2020,0],['Andes Solar','Antofagasta',21.4,2016,0]]],
+      ['atlas',415.6,'',[['Sol del Desierto','María Elena',225.5,2022,0],['Estepa Solar','María Elena',190.1,2026,0]]],
+      ['gm',403,'',[['CEME 1','María Elena',403,2024,0]]],
+      ['engie',383.9,'',[['Coya','María Elena',182.4,2023,0],['Tamaya Solar','Tocopilla',112.9,2022,0],['Capricornio','Antofagasta',88.6,2022,0]]],
+      ['sonnedix',285.5,'',[['Domeyko','Antofagasta',201.6,2022,0],['Pampa Solar Norte','Taltal',65.9,2016,0],['Paine','Calama',9,2021,1],['Victoria','Calama',9,2020,1]]],
+      ['cvcdif',219.9,'',[['Gabriela','Sierra Gorda',219.9,2026,0]]],
+      ['cerro',208.2,'',[['Cerro Dominador CSP','María Elena',108.3,2021,0],['Cerro Dominador','María Elena',99.9,2018,0]]],
+      ['contour',204,'',[['Nuevo Quillagua II','María Elena',109,2025,0],['Nuevo Quillagua','María Elena',95.1,2021,0]]],
+      ['metlen',200.3,'p',[['Taira','María Elena',200.3,2024,0]]],
+      ['total',165.8,'',[['Santa Isabel','María Elena',165.8,2021,0]]],
+      ['xelio',104.8,'',[['Uribe Solar','Antofagasta',52.8,2017,0],['La Cruz Solar','María Elena',52,2022,0]]]],
+     resto:[25,27,698.7]},
+    3:{mw:2983.9, centrales:50, clientes:38,
+     top:[
+      ['enel',769.3,'',[['Guanchoi','Diego de Almagro',369.6,2023,0],['Campos del Sol','Copiapó',363.8,2023,0],['Chañares','Diego de Almagro',35.9,2015,0]]],
+      ['acciona',452.7,'',[['Malgarida','Diego de Almagro',200.7,2021,0],['El Romero','Vallenar',196,2017,0],['Almeyda','Chañaral',56,2020,0]]],
+      ['andesren',264.2,'',[['Rio Escondido','Tierra Amarilla',158,2021,0],['Valle Escondido','Tierra Amarilla',106.2,2022,0]]],
+      ['pacific',262.7,'p',[['Desierto de Atacama','Tierra Amarilla',262.7,2025,0]]],
+      ['colbun',208.9,'',[['Diego de Almagro Sur','Diego de Almagro',208.9,2022,0]]],
+      ['metlen',152.3,'p',[['Tamarico','Vallenar',152.3,2025,0]]],
+      ['toesca',141,'',[['Luz del Norte','Copiapó',141,2016,0]]],
+      ['sonnedix',122.6,'',[['Carrera Pinto','Copiapó',90.7,2016,0],['Diego de Almagro','Diego de Almagro',31.9,2014,0]]],
+      ['innergex',118.4,'',[['Salvador','Diego de Almagro',67.8,2015,0],['San Andres','Copiapó',50.6,2014,0]]],
+      ['s:amanecer-solar',101,'',[['Llano de Llampos','Copiapó',101,2014,0]]],
+      ['opdenergy',89.7,'',[['Sol de los Andes','Diego de Almagro',89.7,2022,0]]],
+      ['atlas',63.3,'',[['Javiera','Chañaral',63.3,2015,0]]]],
+     resto:[26,31,237.7]},
+    4:{mw:625.9, centrales:73, clientes:53,
+     top:[
+      ['actis',105,'p',[['El Pelicano','La Higuera',105,2018,0]]],
+      ['copec',84,'',[['La Huella','La Higuera',84,2021,0]]],
+      ['metlen',79.4,'',[['Doña Antonia','Ovalle',79.4,2024,0]]],
+      ['f:pfv-aves',27,'',[['El Gaviotin','La Serena',9,2023,1],['El Rayador','La Serena',9,2023,1],['Las Taguas','La Serena',9,2023,1]]],
+      ['sonnedix',22.9,'',[['Las Majadas','Monte Patria',9,2021,1],['Chalinga Solar','Salamanca',3,2019,1],['Illapel 5X','Illapel',3,2019,1],['Canesa Solar','Illapel',3,2019,1],['Amparo del Sol','Ovalle',3,2018,1],['Punta Baja Solar','La Higuera',2,2019,1]]],
+      ['naturgy',20.4,'',[['Los Nogales','Ovalle',9,2023,1],['Olivia','Vicuña',3,2023,1],['Olivier','Vicuña',3,2023,1],['Soy Solar','Coquimbo',3,2023,1],['Sofia','Vicuña',2.4,2024,1]]],
+      ['s:generadora-sol-soliv',18.1,'',[['Caracas II','Los Vilos',9.1,2023,0],['Florencia Solar','Los Vilos',9,2022,1]]],
+      ['enel',13.1,'',[['Solaris','Coquimbo',8.6,2025,1],['Las Tacas','Coquimbo',3,2025,1],['La Silla','La Higuera',1.5,2016,0]]],
+      ['cve',13.1,'',[['Santa Francisca','Vicuña',6,2021,1],['Persefone','Salamanca',4,2025,1],['Orquidea Solar','Ovalle',3,2023,1]]],
+      ['s:tamarama',9.2,'',[['Tamarama','Vallenar',9.2,2023,1]]],
+      ['s:don-esteban',9,'',[['Don Oscar','Coquimbo',9,2024,0]]],
+      ['s:don-arturo',9,'',[['Lucas Solar','Coquimbo',9,2024,0]]]],
+     resto:[41,45,215.8]},
+    5:{mw:680.9, centrales:98, clientes:79,
+     top:[
+      ['sonnedix',160.9,'p',[['Meseta de los Andes','Los Andes',148.9,2023,0],['Taranto','Casablanca',9,2022,1],['Helios','Llaillay',3,2022,1]]],
+      ['solek',83,'p',[['Leyda','San Antonio',80,2025,0],['SLK CB Nueve','Putaendo',3,2022,1]]],
+      ['s:energia-cerro-el-morado',34.5,'',[['Doña Carmen Solar','La Ligua',34.5,2017,0]]],
+      ['f:sunlight',27,'',[['Cabildo Sunlight','Cabildo',9,2022,1],['Cañones Sunlight','Calera',9,2022,1],['Palto Sunlight','Quillota',9,2022,1]]],
+      ['f:andina-solar',27,'',[['Tabolango','Limache',9,2024,1],['Tranque del Sol','Nogales',9,2023,1],['Viñas del Sol','Casablanca',6,2024,1],['Central Lliu Lliu (foster)','Quillota',3,2022,1]]],
+      ['cve',26.9,'',[['Ceres Solar','Cartagena',9,2025,1],['Liquidambar','San Esteban',9,2022,1],['Esfena','Petorca',6,2021,1],['Pelumpen Solar','Olmué',2.9,2023,1]]],
+      ['grenergy',18,'p',[['Caleu','Llaillay',9,2025,0],['Panquehue II','Panquehue',6,2017,1],['Cabilsol','Cabildo',3,2017,1]]],
+      ['f:verano',14.8,'',[['Añuñuca del Verano Solar','Panquehue',3,2023,1],['Escorial del Verano Solar','Panquehue',3,2021,1],['Filomena Solar','Santa María',3,2020,1],['Las Tortolas del Verano','Calle Larga',3,2022,1],['Las Palmas del Verano Solar','San Antonio',2.8,2022,1]]],
+      ['s:parque-solar-san-isidro',9,'',[['Isidro','Quillota',9,2025,1]]],
+      ['s:litoral-solar',9,'',[['Litoral Sunlight','El Quisco',9,2022,1]]],
+      ['s:xue-solar',9,'',[['Llay Llay','Llaillay',9,2021,1]]],
+      ['f:tedlar',9,'',[['Loncura','Quintero',9,2024,1]]]],
+     resto:[67,69,252.8]},
+    13:{mw:1002.3, centrales:128, clientes:96,
+     top:[
+      ['enel',199.5,'',[['Manzano','Tiltil',91.7,2024,0],['Don Humberto','Tiltil',80.8,2024,0],['La Colonia','Buin',9,2022,1],['Patagua','Melipilla',9,2024,1],['Cuarzo','Alhué',3,2024,1],['Doña Rubena','Tiltil',3,2024,1],['Mora','San Pedro',3,2024,1]]],
+      ['atlas',112.4,'p',[['Quilapilun','Colina',112.4,2017,0]]],
+      ['gm',90.8,'',[['Santiago Solar','Tiltil',90.8,2018,0]]],
+      ['grenergy',46.2,'p',[['Javiera Carrera','Buin',9,2022,1],['Nahuen','Melipilla',9,2021,1],['GR Santa Rosa','San Pedro',8.9,2019,1],['Violeta','Padre Hurtado',7.3,2023,1],['Belen','Lampa',6,2024,1],['La Estancia','Alhué',3,2020,1],['San Pedro','San Pedro',3,2016,1]]],
+      ['f:verano',27.2,'',[['Los Corrales del Verano','Peñaflor',9,2025,1],['El Monte Ampliación','El Monte',6,2026,1],['El Monte','El Monte',3,2022,1],['Nazarino del Verano Solar','El Monte',3,2021,1],['Loma Tendida del Verano Solar','Pirque',3,2024,1],['Plomo de Verano','Maipú',2.4,2023,1],['Sand Solar','Melipilla',0.8,2025,1]]],
+      ['f:solar-ti',20.1,'',[['Villa CVE','San Pedro',6,2024,1],['Trebo','Melipilla',3,2022,1],['Dinamo','María Pinto',2.9,2025,1],['Citrino','Padre Hurtado',2.8,2019,1],['Pirque','Pirque',2.7,2019,1],['Vicente Solar','Pirque',2.7,2021,1]]],
+      ['f:psf',19,'',[['PSF el Peral','Buin',9,2023,1],['PSF Horizonte','Paine',6,2022,1],['PSF Puangue','Melipilla',4,2022,1]]],
+      ['cve',14.7,'',[['Clementina','Tiltil',6,2023,1],['Santa Ines Solar','Tiltil',3,2020,1],['Los Tauretes','Colina',2.9,2023,1],['Pirincho Solar','Paine',2.9,2025,1]]],
+      ['naturgy',11.9,'',[['Solar Palermo','San Pedro',9,2025,0],['Cantera','San Pedro',2.9,2022,1]]],
+      ['s:pataguilla-solar',9.1,'',[['Pataguilla','Curacaví',9.1,2025,0]]],
+      ['s:rucasol',9,'',[['Rucasol','Tiltil',9,2025,0]]],
+      ['s:planta-solar-aguas-claras',9,'',[['Aguas Claras','Pudahuel',9,2026,1]]]],
+     resto:[84,87,433.3]},
+    6:{mw:599.4, centrales:119, clientes:82,
+     top:[
+      ['grenergy',124.4,'p',[['GR Alcon Solar','Marchihue',9,2022,1],['Mostazal','Mostazal',9,2018,1],['Picunche','Mostazal',9,2022,1],['Placilla Solar','Placilla',9,2019,1],['Santa Emilia','Rancagua',9,2022,1],['La Esperanza II','Marchihue',9,2016,1],['Marchigue II','Marchihue',8.9,2017,1],['El Romeral','Chimbarongo',8,2020,1],['GR Peumo','San Vicente',8,2021,1],['Argomedo','Rengo',8,2020,1],['Rinconada','Rengo',8,2019,1],['Nan','Rancagua',6.7,2022,1],['Rosario','Rengo',4.9,2023,1],['Santa Carolina','Chimbarongo',3,2020,1],['Chimbarongo','Chimbarongo',3,2017,1],['Francisco','Mostazal',3,2017,1],['Homero Solar','Mostazal',3,2017,1],['Luders','Mostazal',3,2018,1],['Don Eugenio','Las Cabras',2.9,2017,1]]],
+      ['f:pfv-aves',39.2,'',[['Las Cachañas','San Fernando',9,2022,1],['Las Catitas','Linares',9,2022,1],['Las Tencas','San Vicente',9,2021,1],['El Mirlo','Malloa',6.2,2023,1],['El Cardenal','San Vicente',3,2023,1],['Las Torcazas','Marchihue',3,2021,1]]],
+      ['enel',23.4,'',[['Rinconada Alcones','Marchihue',9,2023,1],['EA SF Graneros','Rancagua',3,2023,1],['EA SF Pichilemu','Marchihue',3,2024,1],['Parque Fotovoltaico el Sharon','Las Cabras',3,2023,1],['Coinco','Coinco',2.8,2023,1],['Cetus','Quinta de Tilcoco',2.6,2025,1]]],
+      ['f:solar-ti',23.1,'',[['Curaco','Codegua',9,2024,1],['Don Simon','Machalí',7,2024,1],['Aldebaran','San Fernando',6,2024,1],['Guarana','Litueche',1.1,2022,1]]],
+      ['f:psf',21,'',[['Santa Elizabeth','Rengo',9,2023,1],['Quemados','Rancagua',7,2023,1],['PSF la Gamboina','Rancagua',5,2023,1]]],
+      ['s:lirios-de-chumaquito',9.1,'',[['Lilium','Requínoa',9.1,2025,1]]],
+      ['s:sao-paulo-solar',9,'',[['Alameda','Graneros',9,2023,1]]],
+      ['s:pfv-ayla-solar',9,'',[['Ayla Solar','Rancagua',9,2023,1]]],
+      ['s:sur-solar',9,'',[['Las Guindillas','San Fernando',9,2025,1]]],
+      ['s:planta-solar-lo-miguel-ii',9,'',[['Lo Miguel','Rengo',9,2023,1]]],
+      ['s:meli',9,'',[['Meli','Graneros',9,2022,1]]],
+      ['s:parque-solar-lo-chacon',9,'',[['Parque Santa Cruz','Santa Cruz',9,2022,1]]]],
+     resto:[70,74,305.1]},
+    7:{mw:793.2, centrales:111, clientes:74,
+     top:[
+      ['grenergy',277.4,'',[['Gran Teno','Teno',199.6,2024,0],['Tamango','Retiro',45.8,2024,0],['GR Pitao','Teno',9,2021,1],['GR Rauli','Molina',9,2020,1],['Rauquen','Romeral',9,2020,1],['GR Lemu','San Javier',5,2020,1]]],
+      ['f:pfv-aves',94.2,'',[['El Caiquen','Retiro',9,2024,1],['El Chercan','Curicó',9,2023,1],['El Flamenco','Yerbas Buenas',9,2022,1],['El Loro Choroy','Curicó',9,2024,1],['El Trile','Yerbas Buenas',9,2024,1],['Las Golondrinas','Colbún',9,2023,1],['Paraguay','Molina',8.9,2020,1],['El Carpintero','Constitución',8.5,2024,1],['Los Tordos','Talca',5,2022,1],['El Chucao','Retiro',3,2020,1],['El Cuervo','Licantén',3,2023,1],['El Pichon','Retiro',3,2023,1],['El Zorzal','San Rafael',3,2022,1],['Las Bandurrias','Curicó',3,2023,1],['El Tiuque','San Javier',1.5,2022,1],['El Condor','Teno',1.3,2020,1]]],
+      ['enel',22.2,'',[['Don Rodrigo','Talca',4.5,2023,1],['Boix','Cauquenes',3,2025,1],['EA Maiten','San Rafael',3,2025,1],['Hijuela 4','Maule',3,2024,1],['Piduco','Pencahue',3,2022,1],['San Camilo','Molina',3,2021,1],['Caracoles','Yerbas Buenas',2.7,2023,1]]],
+      ['naturgy',20.8,'',[['Solar Torino','Teno',8,2022,1],['Bergamo','Teno',3.8,2022,1],['Cauquenes','Cauquenes',3,2022,1],['Milan A','Teno',3,2022,1],['Ratulemus','Cauquenes',3,2022,1]]],
+      ['f:blue-solar',12.4,'',[['Collanco','Constitución',9.1,2025,1],['Millahue','San Javier',3.4,2025,1]]],
+      ['s:parque-solar-villa-longavi',9,'',[['Villa Longavi','Longaví',9,2025,0]]],
+      ['colbun',9,'',[['Machicura','Colbún',9,2022,0]]],
+      ['s:venezia-solar',9,'',[['Venezia Solar','Teno',9,2025,0]]],
+      ['s:belen-solar',9,'',[['Barcelona','Curicó',9,2024,1]]],
+      ['s:cipres',9,'',[['Cipres','Linares',9,2021,1]]],
+      ['s:nain-solar',9,'',[['Drux','Curicó',9,2026,1]]],
+      ['s:genova-solar',9,'',[['Genova','Linares',9,2024,1]]]],
+     resto:[62,68,303.1]},
+    16:{mw:292.9, centrales:58, clientes:45,
+     top:[
+      ['f:ee-arboles',34.2,'',[['Rauli','Yungay',9,2025,0],['Peumo Yungay','Yungay',8.5,2026,0],['Los Naranjos','Yungay',8.4,2026,0],['Guindo Santo','Yungay',8.3,2026,0]]],
+      ['s:larqui-solar',9,'',[['Alto del Sol','Bulnes',9,2025,0]]],
+      ['s:parque-solar-quilmo',9,'',[['Quilmo','Chillán',9,2024,0]]],
+      ['s:bulnes-solar',9,'',[['Bulnes Solar','Bulnes',9,2024,1]]],
+      ['f:tedlar',9,'',[['Casa de Lata','Chillán',5,2025,1],['Elvira','Chillán',4,2025,1]]],
+      ['s:ravenna-solar',9,'',[['Sgt Tucapel','Yungay',6.8,2024,1],['Cholguan','Yungay',2.2,2024,1]]],
+      ['f:pfv-aves',9,'',[['El Piuquen','Bulnes',3,2021,1],['Las Lechuzas','San Carlos',3,2019,1],['Las Tortolas','Bulnes',3,2021,1]]],
+      ['s:sociedad-energias-renovables-el-alamo',9,'',[['La Cosecha','San Carlos',9,2025,1]]],
+      ['s:santa-elvira-energy',9,'',[['La Palma Solar','Chillán',9,2021,1]]],
+      ['s:montejo-energia',9,'',[['Mutupin','San Carlos',9,2021,1]]],
+      ['s:parque-solar-el-trigal',9,'',[['Parque el Trigal','San Ignacio',9,2023,1]]],
+      ['s:parque-solar-pueblo-seco',9,'',[['Parque Pueblo Seco','San Ignacio',9,2023,1]]]],
+     resto:[33,39,159.7]},
+    8:{mw:199.6, centrales:34, clientes:31,
+     top:[
+      ['f:andina-solar',18,'',[['Laja Andino','Laja',9,2023,1],['Paillihue','Los Ángeles',9,2023,1]]],
+      ['s:juan-solar',9,'',[['Alcazar','Los Ángeles',9,2025,1]]],
+      ['s:santa-laura-energy',9,'',[['Avel Solar','Los Ángeles',9,2022,1]]],
+      ['s:cabrero-solar',9,'',[['Cabrero Solar','Cabrero',9,2023,1]]],
+      ['s:sol-del-sur-15',9,'',[['Chacaico','Los Ángeles',9,2024,1]]],
+      ['s:apolo-solar',9,'',[['Cortijo','Cabrero',9,2021,1]]],
+      ['s:cocharcas-solar',9,'',[['Duqueco Solar','Los Ángeles',9,2022,1]]],
+      ['s:santa-barbara-energy',9,'',[['Velasco Solar','Los Ángeles',5,2024,1],['Lenga Solar','Los Ángeles',4,2024,1]]],
+      ['s:pedro-solar',9,'',[['Maria Dolores','Los Ángeles',9,2024,1]]],
+      ['s:suvan-solar',9,'',[['Moya','Cabrero',9,2021,1]]],
+      ['s:tierra-solar',9,'',[['Mulchen Santa Barbara','Mulchén',9,2026,1]]],
+      ['s:el-olivar-solar',9,'',[['Parque Solar el Olivar','Los Ángeles',9,2022,1]]]],
+     resto:[19,20,82.6]},
+    9:{mw:26.9, centrales:7, clientes:6,
+     top:[
+      ['s:canelillo-solar',9,'',[['Ancahual Solar','Loncoche',9,2024,1]]],
+      ['s:millaray-fotovoltaica',6,'',[['Ren','Renaico',3,2023,1],['Ren - Ampliacion','Renaico',3,2024,1]]],
+      ['s:los-sauces-solar-ii',3,'',[['Hergo los Sauces','Los Sauces',3,2025,1]]],
+      ['s:alto-cautin',3,'',[['Ter Aromos','Los Sauces',3,2020,1]]],
+      ['s:los-sauces-solar-i',3,'',[['Los Eucaliptos','Los Sauces',3,2025,1]]],
+      ['s:angol-solar-i',2.9,'',[['Angol Solar I','Angol',2.9,2025,1]]]],
+     resto:[0,0,0]},
+    14:{mw:3, centrales:1, clientes:1,
+     top:[
+      ['s:solar-del-bueno',3,'',[['Solar del Bueno','La Unión',3,2024,1]]]],
+     resto:[0,0,0]},
+    10:{mw:3, centrales:1, clientes:1,
+     top:[
+      ['s:bepatagonia-generacion',3,'',[['Ter Diesel Colaco Pargua','Calbuco',3,2024,1]]]],
+     resto:[0,0,0]},
+    11:{mw:3, centrales:1, clientes:1,
+     top:[
+      ['s:edelaysen',3,'',[['El Blanco','Coihaique',3,2021,0]]]],
+     resto:[0,0,0]},
+    12:{mw:0, centrales:0, clientes:0, top:[], resto:[0,0,0]}
+  }
+};
+/* <<< CLIENTES */
+
+/* Distribuidor asignado a cada cliente, por región: 'cod:clave' → nombre.
+   Se carga desde distribuidores.csv (columna «distribuidor») con
+   generar_clientes_solar.py: no editarlo a mano. Lo que no figure aquí
+   se muestra «sin asignar». */
+/* >>> DISTRIB · cargado desde distribuidores.csv por generar_clientes_solar.py */
+const DISTRIB = {};
+/* <<< DISTRIB */
 
 /* ============================================================
    VISTA DATACENTERS · cartera de proyectos de data center por región
@@ -858,7 +1204,7 @@ solar:{
             txt:miles(mix(r).fv)+' MW', col:SOLOSC};
   },
   etiqueta:r=>`${r.nombre}, ${miles(mix(r).fv)} megavatios solares fotovoltaicos instalados`,
-  pie:'<b>Sobre los datos.</b> La barra corresponde a la capacidad ERNC y de almacenamiento instalada por región (<b>ACERA</b>, Boletín de Estadísticas de julio 2026, Figura 7), que en el norte grande es casi enteramente solar FV. No existe una tabla oficial de MW solar-FV desagregados por las 16 regiones: por eso el detalle se apoya en Net Billing (ACERA, Figura 9, junio 2026), PMGD (marzo 2026) y el catastro de proyectos utility. El reparto por tecnología de cada región (solar FV, eólica y resto) no está publicado en forma de tabla: se midió sobre las barras apiladas de la Figura 7 y se calibró para que la suma nacional de solar FV coincida con los 12.595 MW de la Tabla 3, con un desvío residual de 0,4% en eólica. El corte entre escala utility y PMGD aplica la participación solar del PMGD (~80%) sobre el PMGD regional de marzo de 2026, disponible solo en siete regiones. El n.º de centrales ERNC proviene de la CNE/Coordinador con corte a mayo de 2024, de modo que en algunas regiones no calza con la capacidad de julio de 2026. Los recortes por región se leen de la Figura 5 del boletín, que no publica tabla: van marcados con ≈. El catastro de proyectos utility combina el informe base con prensa sectorial y comunicaciones de los propietarios (Enel Green Power, Engie, Atlas, Grenergy, Opdenergy, AME/EDF), verificadas en septiembre de 2026; las capacidades pueden estar en MWac o MWp según la fuente.',
+  pie:'<b>Sobre los datos.</b> La barra corresponde a la capacidad ERNC y de almacenamiento instalada por región (<b>ACERA</b>, Boletín de Estadísticas de julio 2026, Figura 7), que en el norte grande es casi enteramente solar FV. No existe una tabla oficial de MW solar-FV desagregados por las 16 regiones: por eso el detalle se apoya en Net Billing (ACERA, Figura 9, junio 2026), PMGD (marzo 2026) y el catastro de proyectos utility. El reparto por tecnología de cada región (solar FV, eólica y resto) no está publicado en forma de tabla: se midió sobre las barras apiladas de la Figura 7 y se calibró para que la suma nacional de solar FV coincida con los 12.595 MW de la Tabla 3, con un desvío residual de 0,4% en eólica. El corte entre escala utility y PMGD aplica la participación solar del PMGD (~80%) sobre el PMGD regional de marzo de 2026, disponible solo en siete regiones. El n.º de centrales ERNC proviene de la CNE/Coordinador con corte a mayo de 2024, de modo que en algunas regiones no calza con la capacidad de julio de 2026. Los recortes por región se leen de la Figura 5 del boletín, que no publica tabla: van marcados con ≈. El catastro de proyectos utility combina el informe base con prensa sectorial y comunicaciones de los propietarios (Enel Green Power, Engie, Atlas, Grenergy, Opdenergy, AME/EDF), verificadas en septiembre de 2026; las capacidades pueden estar en MWac o MWp según la fuente. Los <b>clientes</b> de cada región salen del Reporte de Capacidad Instalada de Generación de la <b>CNE</b> (octubre 2026), que registra la sociedad dueña y la potencia neta de cada central en operación, PMGD incluidos; por eso su total regional no calza exactamente con la barra. Como casi cada central es un SPV, el paso a grupo económico es elaboración propia —con prensa sectorial y comunicados de compraventa— y se marca «por confirmar» cuando se infiere de una fuente antigua o del nombre del SPV. Se excluyó el parque eólico La Cabaña (105 MW, La Araucanía), que la CNE registra como solar.',
   detalle:r=>{
     const s=sol(r), m=mix(r);
     const micro=[
@@ -912,7 +1258,7 @@ solar:{
     const norte=g(15,1,2,3), centro=g(4,5,13,6,7), sur=g(16,8,9,14,10,11,12);
     return `<p class="sub">Panorama</p>
     <h2>Elige una región</h2>
-    <p class="vacio">Pasa el cursor por el mapa o por cualquier fila para ver su capacidad solar, el desglose de su matriz renovable y el catastro de proyectos de escala utility. Haz clic para fijar una región.</p>
+    <p class="vacio">Pasa el cursor por el mapa o por cualquier fila para ver su capacidad solar, el desglose de su matriz renovable, el catastro de proyectos de escala utility y sus principales clientes. Haz clic para fijar una región.</p>
     <div class="repartos">
       <div><b style="color:${SOLOSC}">${Math.round(norte/tot*100)}%</b><span>Norte Grande<br>XV · I · II · III</span></div>
       <div><b>${Math.round(centro/tot*100)}%</b><span>Centro<br>IV · V · RM · VI · VII</span></div>
@@ -964,6 +1310,74 @@ solar:{
     <p class="pieCifra">Capacidad ERNC y almacenamiento instalada en la región.</p>
     <div class="dona">${dona(partes)}<div class="leyDona">${filas}</div></div>
     <p class="nota">${desglose} El reparto por tecnología se midió sobre el gráfico regional de ACERA y el corte entre escala utility y PMGD es una estimación: no existe una tabla oficial que los separe por región.</p>`;
+  },
+  tercera:r=>{                          // clientes: propietarios de las centrales
+    const K=CLIENTES, nom=k=>K.g[k]||[k,''];
+    const fuente=`<p class="fuente">CNE · Reporte de Capacidad Instalada de Generación, ${K.corte}. La CNE registra la sociedad dueña de cada central; el paso a grupo económico es elaboración propia y «por confirmar» marca los inferidos de fuentes antiguas o del nombre del SPV.</p>`;
+    if(!r){
+      const p=K.pais, mx=p.top[0][1];
+      const diez=Math.round(p.top.reduce((a,t)=>a+t[1],0)/p.mw*100);
+      return `<p class="sub">Clientes principales · Chile</p>
+      <div class="granCifra">
+        <b style="color:${SOLOSC}">${miles(p.clientes)}</b>
+        <span class="pastilla" style="color:${SOLOSC}">clientes · ${miles(p.centrales)} centrales</span>
+      </div>
+      <p class="pieCifra">Propietarios de las centrales solares en operación, agrupados por grupo económico. Los diez mayores reúnen el ${diez}% de los ${miles(p.mw)} MW.</p>
+      ${p.top.map(([k,mw,n,regs])=>`<div class="tuberia">
+          <span>${nom(k)[0]} <small>${regs.map(c=>R[c].r.romano).join(' · ')}</small></span><span>${miles(mw)} MW</span>
+          <div class="pista"><i style="width:${mw/mx*100}%;background:${SOL}"></i></div>
+        </div>`).join('')}
+      <p class="nota">Elige una región para ver sus clientes, las centrales que opera cada uno y el distribuidor asignado.</p>
+      ${fuente}`;
+    }
+    const C=K.reg[r.cod];
+    if(!C.centrales) return `<p class="sub">Clientes principales · ${r.nombre}</p>
+      <p class="perfil">La CNE no registra centrales solares en operación en la región.</p>${fuente}`;
+
+    // proyectos del catastro que aún no operan, sumados a su cliente
+    const lista=C.top.map(([k,mw,f,pl])=>({k,mw,f,pl,obra:[]}));
+    sol(r).obras.filter(o=>o.k).forEach(o=>{
+      let c=lista.find(x=>x.k===o.k);
+      if(!c){ c={k:o.k,mw:0,f:'',pl:[],obra:[]}; lista.push(c); }
+      c.obra.push(o);
+    });
+    const enObra=c=>c.obra.filter(o=>o.e==='co'||o.e==='pr').reduce((a,o)=>a+o.mw,0);
+    lista.sort((a,b)=>(b.mw+enObra(b))-(a.mw+enObra(a)));
+
+    const mwTxt=v=>v<10&&v%1?dec(v):miles(v), mx=Math.max(...lista.map(c=>c.mw+enObra(c)));
+    const ETQ={co:['constr','En construcción'], pr:['constr','En pruebas'], rca:['rca','RCA aprobada'], ev:['rca','En calificación']};
+    const CUPO=5;
+    const filas=lista.map((c,i)=>{
+      const [n,m]=nom(c.k), tipo=c.k.slice(0,2), vis=c.pl.slice(0,CUPO), mas=c.pl.slice(CUPO);
+      const obra=enObra(c), d=DISTRIB[r.cod+':'+c.k];
+      const chips=(tipo==='f:'?'<span class="chip rca">Serie de SPV · matriz por identificar</span>':'')
+                 +(tipo==='s:'?'<span class="chip rca">Sin grupo identificado</span>':'')
+                 +(c.f==='p'?'<span class="chip est">Grupo por confirmar</span>':'')
+                 +(obra?`<span class="chip constr">+${miles(obra)} MW en obra</span>`:'');
+      const linea=c.pl.length?`${c.pl.length} central${c.pl.length===1?'':'es'} · ${dec(c.mw/C.mw*100)}% de la región`:'Sin centrales en operación';
+      return `<div class="cli">
+        <span class="cliN">${i+1}</span>
+        <span class="cli1">${n}${m?` <small>${m}</small>`:''}</span>
+        <span class="cli2">${c.mw?mwTxt(c.mw)+' MW':'—'}</span>
+        <span class="cli3">${linea}${chips?'<br>'+chips:''}</span>
+        <div class="pista"><i style="width:${(c.mw+obra)/mx*100}%"></i></div>
+        <ul class="pls">${vis.map(([pn,pc,pmw,pa,pg])=>`<li>
+            <span>${pn} <u>${pc}${pa?' · '+pa:''}${pg?' · PMGD':''}</u></span><b>${mwTxt(pmw)}</b></li>`).join('')}
+          ${mas.length?`<li class="mas">+ ${mas.length} central${mas.length===1?'':'es'} · ${mwTxt(mas.reduce((a,p)=>a+p[2],0))} MW</li>`:''}
+          ${c.obra.map(o=>`<li><span>${o.n} <span class="chip ${ETQ[o.e][0]}">${ETQ[o.e][1]}</span></span><b>${miles(o.mw)}</b></li>`).join('')}</ul>
+        <span class="dist${d?' si':''}">Distribuidor · ${d||'sin asignar'}</span>
+      </div>`;
+    }).join('');
+
+    return `<p class="sub">Clientes principales · ${r.nombre}</p>
+    <div class="granCifra">
+      <b style="color:${SOLOSC}">${miles(C.clientes)}</b>
+      <span class="pastilla" style="color:${SOLOSC}">clientes · ${miles(C.centrales)} centrales</span>
+    </div>
+    <p class="pieCifra">Dueños de los ${miles(C.mw)} MW solares en operación en la región, ordenados por capacidad en operación y en obra.${C.top.length<C.clientes?` Se detallan los ${C.top.length} mayores.`:''}</p>
+    ${filas}
+    ${C.resto[0]?`<p class="restoObras">+ ${C.resto[0]} clientes menores · ${C.resto[1]} centrales · ${mwTxt(C.resto[2])} MW</p>`:''}
+    ${fuente}`;
   }
 },
 
@@ -1268,8 +1682,9 @@ function aplicarVista(nombre){
   }
   detalle.innerHTML=v.inicial();
   resumen.innerHTML=v.resumen();
-  extra.innerHTML=v.extra?v.extra():'';   // tarjeta fija: solo la usa la vista datacenters
-  extra.hidden=!v.extra;
+  // tercera tarjeta: fija en datacenters (extra), sigue a la región en solar (tercera)
+  extra.innerHTML=v.extra?v.extra():v.tercera?v.tercera(null):'';
+  extra.hidden=!(v.extra||v.tercera);
 }
 
 const PESTANAS=[['tGlobal','global'],['tSolar','solar'],['tDatos','datacenters']]
@@ -1308,6 +1723,7 @@ function pintar(cod){
   if(cod===null){ detalle.innerHTML=v.inicial(); resumen.innerHTML=v.resumen(); }
   else { detalle.innerHTML=v.detalle(R[cod].r);
          resumen.innerHTML=v.segunda ? v.segunda(R[cod].r) : v.resumen(); }
+  if(v.tercera) extra.innerHTML=v.tercera(cod===null?null:R[cod].r);
 }
 function marcar(cod){                    // hover: al salir vuelve a la región fijada
   const destino = cod===null ? fijado : cod;
